@@ -1,7 +1,65 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Exponential Function Transformations Explorer</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    body{font-family:sans-serif;margin:2rem}
+    h1{font-size:1.75rem;margin-bottom:1.5rem;text-align:center}
+    .container{display:flex;flex-wrap:wrap;gap:1.5rem}
+    .sidebar{width:340px;flex:0 0 340px;display:flex;flex-direction:column;gap:2rem}
+    .controls{display:flex;flex-direction:column;gap:1rem}
+    .control{display:flex;flex-direction:column}
+    .control label{font-weight:600;margin-bottom:.25rem}
+    .legend,.info{font-size:1.05rem}
+    .legend p,.info p{margin:.25rem 0}
+    .swatch{display:inline-block;width:24px;height:3px;margin-right:6px;vertical-align:middle}
+    .parent-swatch{background:#666}.trans-swatch{background:#007bff}.asymptote-swatch{background:#d9534f}
+    canvas{max-width:100%;height:480px}
+    .chartarea{flex:1 1 400px}
+  </style>
+</head>
 <body>
-<h1>Hello World</h1>
-<p>I'm hosted with GitHub Pages.</p>
+  <h1>Explore Transformations of <em>f(x)=b<sup>x</sup></em></h1>
+  <div class="container">
+    <aside class="sidebar">
+      <div class="controls">
+        <div class="control"><label for="bRange">b (base, >0 &ne;1): <span id="bVal">2</span></label><input id="bRange" type="range" min="0.5" max="5" step="0.1" value="2"/></div>
+        <div class="control"><label for="aRange">a (vertical stretch): <span id="aVal">1</span></label><input id="aRange" type="range" min="0.1" max="5" step="0.1" value="1"/></div>
+        <div class="control" style="flex-direction:row;align-items:center;gap:.5rem;"><input id="flipChk" type="checkbox"/><label for="flipChk">Flip across x-axis</label></div>
+        <div class="control"><label for="hRange">h (horizontal shift): <span id="hVal">0</span></label><input id="hRange" type="range" min="-5" max="5" step="0.1" value="0"/></div>
+        <div class="control"><label for="kRange">k (vertical shift): <span id="kVal">0</span></label><input id="kRange" type="range" min="-5" max="5" step="0.1" value="0"/></div>
+      </div>
+      <div class="legend">
+        <p><span class="swatch parent-swatch"></span>Parent</p>
+        <p><span class="swatch trans-swatch"></span>Transformed</p>
+        <p><span class="swatch asymptote-swatch"></span>Asymptote</p>
+      </div>
+      <div class="info">
+        <p><strong>Parent:</strong> f(x)=<span id="parentEq">2<sup>x</sup></span></p>
+        <p><strong>Transformed:</strong> g(x)=<span id="eqText">2<sup>x</sup></span></p>
+        <p><strong>Asymptote:</strong> y=<span id="asymptoteText">0</span></p>
+        <p><strong>Domain:</strong> <span id="domainText">( −∞ , ∞ )</span></p>
+        <p><strong>Range:</strong> <span id="rangeText">( 0 , ∞ )</span></p>
+      </div>
+    </aside>
+    <main class="chartarea"><canvas id="expChart"></canvas></main>
+  </div>
+<script>
+const xValues=Array.from({length:101},(_,i)=>(i-50)/10);
+const parentY=b=>xValues.map(x=>Math.pow(b,x));
+const calcY=(a,b,h,k)=>xValues.map(x=>a*Math.pow(b,x-h)+k);
+let aStretch=1,b=2,h=0,k=0,flip=false;
+// ------- Smart label plugin -------
+const pointLabelPlugin={id:'pointLabels',afterDraw(chart){const {ctx,chartArea:{left,right,top,bottom},scales:{x:xs,y:ys}}=chart;const pts=chart.options.plugins.pointLabels.points||[];ctx.save();ctx.font='12px sans-serif';ctx.fillStyle='black';const placed=[];pts.forEach(p=>{const text=p.label;const w=ctx.measureText(text).width;const hTxt=12;let px=xs.getPixelForValue(p.x),py=ys.getPixelForValue(p.y);let dx=8,dy=-8;if(px+dx+w>right)dx=-w-8;if(px+dx<left)dx=8;if(py+dy<hTxt+top)dy=12;if(py+dy>bottom)dy=-12;let box={x:px+dx,y:py+dy,w,h:hTxt};placed.forEach(bx=>{while(!(box.x+box.w<bx.x||bx.x+bx.w<box.x||box.y+box.h<bx.y||bx.y+bx.h<box.y)){box.y+=14;if(box.y+box.h>bottom){box.y=py-14;break;}}});placed.push(box);ctx.fillText(text,box.x,box.y);});ctx.restore();}};
+Chart.register(pointLabelPlugin);
+const ctx=document.getElementById('expChart').getContext('2d');
+const chart=new Chart(ctx,{type:'line',data:{labels:xValues,datasets:[{label:'Parent',data:parentY(b),borderColor:'#666',borderDash:[6,6],borderWidth:2,pointRadius:0,fill:false},{label:'Transformed',data:calcY(1,b,0,0),borderColor:'#007bff',borderWidth:2,pointRadius:0,fill:false},{label:'Asymptote',data:xValues.map(()=>k),borderColor:'#d9534f',borderDash:[4,4],borderWidth:1,pointRadius:0,fill:false},{label:'P(0,1)',type:'scatter',data:[{x:0,y:1}],borderColor:'#666',backgroundColor:'#666',pointRadius:5},{label:"P'",type:'scatter',data:[{x:0,y:0}],borderColor:'#007bff',backgroundColor:'#007bff',pointRadius:5}]},options:{animation:false,responsive:true,maintainAspectRatio:false,interaction:{mode:'index',intersect:false},plugins:{legend:{display:false},pointLabels:{points:[]}},scales:{x:{min:-5,max:5,title:{display:true,text:'x'},border:{color:'black',width:2},grid:{color:'rgba(0,0,0,0.1)'}},y:{min:-10,max:10,title:{display:true,text:'y'},border:{color:'black',width:2},grid:{color:'rgba(0,0,0,0.1)'}}}}});
+const ids=id=>document.getElementById(id);const aVal=ids('aVal'),bVal=ids('bVal'),hVal=ids('hVal'),kVal=ids('kVal');const flipChk=ids('flipChk');const eqText=ids('eqText'),parentEq=ids('parentEq');const asymptoteText=ids('asymptoteText');const domainText=ids('domainText'),rangeText=ids('rangeText');const fmt=n=>Math.abs(n)>=1000?n.toFixed(0):parseFloat(n.toFixed(2));function formatEquation(a,b,h,k){const aStr=Math.abs(a)===1?(a<0?'-':''):fmt(a);const hStr=h===0?'x':`x ${h<0?'+ '+fmt(-h):'- '+fmt(h)}`;const exp=`${fmt(b)}<sup>${hStr}</sup>`;const kStr=k===0?'':k>0?` + ${fmt(k)}`:` - ${fmt(-k)}`;return(aStr?`${aStr}(${exp})`:exp)+kStr;}domainText.innerHTML='( −∞ , ∞ )';
+function update(){aStretch=parseFloat(ids('aRange').value);b=parseFloat(ids('bRange').value);h=parseFloat(ids('hRange').value);k=parseFloat(ids('kRange').value);flip=flipChk.checked;const a=flip?-aStretch:aStretch;aVal.textContent=a;bVal.textContent=b;hVal.textContent=h;kVal.textContent=k;parentEq.innerHTML=`${b}<sup>x</sup>`;eqText.innerHTML=formatEquation(a,b,h,k);asymptoteText.textContent=k;rangeText.innerHTML=a===0?`{ ${k} }`:(a>0?`( ${k} , ∞ )`:`( −∞ , ${k} )`);const transX=h,transY=a*1+k;chart.data.datasets[0].data=parentY(b);chart.data.datasets[1].data=calcY(a,b,h,k);chart.data.datasets[2].data=xValues.map(()=>k);chart.data.datasets[3].data=[{x:0,y:1}];chart.data.datasets[4].data=[{x:transX,y:transY}];chart.options.plugins.pointLabels.points=[{x:0,y:1,label:'(0,1)'},{x:transX,y:transY,label:`(${fmt(transX)}, ${fmt(transY)})`}];chart.update('none');}
+['aRange','bRange','hRange','kRange','flipChk'].forEach(id=>ids(id).addEventListener('input',update));update();
+</script>
 </body>
 </html>
