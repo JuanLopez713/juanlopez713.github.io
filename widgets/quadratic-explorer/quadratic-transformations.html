@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Quadratic Function Explorer</title>
+        <link rel="preconnect" href="https://fonts.googleapis.com">
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link
+            href="https://fonts.googleapis.com/css2?family=Source+Sans+Pro:wght@400;500;600;700&display=swap"
+            rel="stylesheet">
+        <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+        <style>
+            body {
+                font-family: 'Source Sans Pro', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+                line-height: 1.6;
+                margin: 0;
+                padding: 2rem;
+                background-color: #f8f9fa;
+            }
+
+            .container {
+                max-width: 1200px;
+                margin: 0 auto;
+            }
+
+            h1 {
+                color: #000000;
+                text-align: center;
+                margin-bottom: 2rem;
+            }
+
+            .function-display {
+                font-family: 'Times New Roman', serif;
+                font-style: italic;
+                color: #000000;
+                font-weight: 600;
+                font-size: 1.25rem;
+                background: #f8f9fa;
+                padding: 0.75rem;
+                border-radius: 8px;
+                margin: 1rem 0;
+                text-align: center;
+                border: 1px solid rgba(0, 0, 0, 0.05);
+            }
+
+            .controls {
+                display: grid;
+                grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+                gap: 1rem;
+                margin: 2rem 0;
+            }
+
+            .control-group {
+                background: white;
+                padding: 1rem;
+                border-radius: 8px;
+                box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+            }
+
+            .control-group h3 {
+                margin-top: 0;
+                color: #000000;
+                font-size: 1.1rem;
+            }
+
+            .slider-container {
+                margin: 1rem 0;
+            }
+
+            label {
+                display: block;
+                margin-bottom: 0.5rem;
+                color: #666;
+            }
+
+            input[type="range"] {
+                width: 100%;
+                margin: 0.5rem 0;
+            }
+
+            .value-display {
+                font-family: monospace;
+                color: #666;
+            }
+
+            #plot {
+                width: 100%;
+                height: 500px;
+                background: white;
+                border-radius: 8px;
+                box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+            }
+
+            .form-toggle {
+                text-align: center;
+                margin: 1rem 0;
+            }
+
+            .form-toggle button {
+                background: #E60000;
+                color: white;
+                border: none;
+                padding: 0.5rem 1rem;
+                border-radius: 4px;
+                cursor: pointer;
+                margin: 0 0.5rem;
+                font-family: inherit;
+            }
+
+            .form-toggle button:hover {
+                background: #cc0000;
+            }
+
+            .form-toggle button.active {
+                background: #cc0000;
+                font-weight: bold;
+            }
+        </style>
+    </head>
+
+    <body>
+        <div class="container">
+            <h1>Quadratic Function Explorer</h1>
+
+            <div class="form-toggle">
+                <button id="standardFormBtn" class="active">Standard Form</button>
+                <button id="vertexFormBtn">Vertex Form</button>
+            </div>
+
+            <div id="standardForm" class="function-display">
+                f(x) = ax² + bx + c
+            </div>
+            <div id="vertexForm" class="function-display" style="display: none;">
+                f(x) = a(x-h)² + k
+            </div>
+
+            <div class="controls">
+                <div class="control-group">
+                    <h3>Standard Form Controls</h3>
+                    <div class="slider-container">
+                        <label for="a">a (leading coefficient)</label>
+                        <input type="range" id="a" min="-5" max="5" step="0.1" value="1">
+                        <span class="value-display">a = <span id="aValue">1</span></span>
+                    </div>
+                    <div class="slider-container">
+                        <label for="b">b (linear coefficient)</label>
+                        <input type="range" id="b" min="-10" max="10" step="0.1" value="0">
+                        <span class="value-display">b = <span id="bValue">0</span></span>
+                    </div>
+                    <div class="slider-container">
+                        <label for="c">c (constant term)</label>
+                        <input type="range" id="c" min="-10" max="10" step="0.1" value="0">
+                        <span class="value-display">c = <span id="cValue">0</span></span>
+                    </div>
+                </div>
+
+                <div class="control-group">
+                    <h3>Vertex Form Controls</h3>
+                    <div class="slider-container">
+                        <label for="aVertex">a (stretch/compression)</label>
+                        <input type="range" id="aVertex" min="-5" max="5" step="0.1" value="1">
+                        <span class="value-display">a = <span id="aVertexValue">1</span></span>
+                    </div>
+                    <div class="slider-container">
+                        <label for="h">h (horizontal shift)</label>
+                        <input type="range" id="h" min="-10" max="10" step="0.1" value="0">
+                        <span class="value-display">h = <span id="hValue">0</span></span>
+                    </div>
+                    <div class="slider-container">
+                        <label for="k">k (vertical shift)</label>
+                        <input type="range" id="k" min="-10" max="10" step="0.1" value="0">
+                        <span class="value-display">k = <span id="kValue">0</span></span>
+                    </div>
+                </div>
+            </div>
+
+            <div id="plot"></div>
+        </div>
+        <script src="quadratic-transformations.js"></script>
+    </body>
+
+</html>
