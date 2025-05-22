@@ -52,6 +52,38 @@
       flex-direction: column;
       gap: 0.75rem;
     }
+    @media (max-width: 768px) {
+      .controls-container {
+        flex-direction: column;
+      }
+      .sidebar {
+        width: 100%;
+        flex: 1 1 100%;
+        align-items: center;
+        order: 1;
+      }
+      .chartarea {
+        order: 2;
+      }
+      .controls {
+        width: 100%;
+        max-width: 500px;
+      }
+      .info {
+        width: 100%;
+        max-width: 500px;
+        margin-bottom: 0.75rem;
+      }
+      .legend {
+        width: 100%;
+        max-width: 500px;
+        margin-top: 0.75rem;
+        order: 3;
+        text-align: left;
+        margin-left: auto;
+        margin-right: auto;
+      }
+    }
     .controls {
       display: flex;
       flex-direction: column;
@@ -89,6 +121,12 @@
     }
     .legend {
       margin-bottom: 0;
+      display: inline-block;
+    }
+    .legend h3 {
+      margin: 0 0 0.5rem 0;
+      font-size: 1rem;
+      color: #2c3e50;
     }
     .legend p,
     .info p {
@@ -169,20 +207,20 @@
           <p><strong>Domain:</strong> <span id="domainText">( −∞ , ∞ )</span></p>
           <p><strong>Range:</strong> <span id="rangeText">( 0 , ∞ )</span></p>
         </div>
-
-        <!-- Legend -->
-        <div class="legend">
-          <p><span class="swatch parent"></span>Parent</p>
-          <p><span class="swatch trans"></span>Transformed</p>
-          <p><span class="swatch axis"></span>Axes</p>
-          <p><span class="swatch asymptote"></span>Asymptote</p>
-        </div>
       </aside>
 
       <!-- ===== Chart ===== -->
       <main class="chartarea">
         <canvas id="expChart"></canvas>
       </main>
+
+      <!-- Legend -->
+      <div class="legend">
+        <h3>Legend</h3>
+        <p><span class="swatch parent"></span>Parent</p>
+        <p><span class="swatch trans"></span>Transformed</p>
+        <p><span class="swatch asymptote"></span>Asymptote</p>
+      </div>
     </div>
   </div>
 
