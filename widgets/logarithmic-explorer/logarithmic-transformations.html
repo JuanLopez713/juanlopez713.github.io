@@ -13,7 +13,7 @@
       line-height: 1.6;
       margin: 0;
       padding: 0.5rem;
-      background-color: #f5f5f5;
+      background-color: #f8f9fa;
     }
     .container {
       max-width: 1200px;
@@ -26,16 +26,16 @@
     .back-link {
       display: inline-block;
       margin-bottom: 0.5rem;
-      color: #3498db;
+      color: #E60000;
       text-decoration: none;
       font-weight: 500;
     }
     .back-link:hover {
-      color: #2980b9;
+      color: #cc0000;
       text-decoration: underline;
     }
     h1 {
-      color: #2c3e50;
+      color: #000000;
       font-size: 1.25rem;
       margin-bottom: 0.75rem;
       text-align: center;
@@ -114,12 +114,41 @@
     .control label {
       font-weight: 600;
       margin-bottom: 0.15rem;
-      color: #2c3e50;
+      color: #000000;
       font-size: 0.9rem;
     }
     .control input[type="range"] {
       width: 100%;
       margin: 0.15rem 0;
+      -webkit-appearance: none;
+      background: #f8f9fa;
+      height: 6px;
+      border-radius: 3px;
+      outline: none;
+    }
+    .control input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 16px;
+      height: 16px;
+      background: #E60000;
+      border-radius: 50%;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    .control input[type="range"]::-webkit-slider-thumb:hover {
+      transform: scale(1.1);
+    }
+    .control input[type="range"]::-moz-range-thumb {
+      width: 16px;
+      height: 16px;
+      background: #E60000;
+      border-radius: 50%;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      border: none;
+    }
+    .control input[type="range"]::-moz-range-thumb:hover {
+      transform: scale(1.1);
     }
     .control input[type="checkbox"] {
       margin: 0;
@@ -139,12 +168,12 @@
     .legend h3 {
       margin: 0 0 0.5rem 0;
       font-size: 1rem;
-      color: #2c3e50;
+      color: #000000;
     }
     .legend p,
     .info p {
       margin: 0.1rem 0;
-      color: #2c3e50;
+      color: #000000;
     }
     .swatch {
       display: inline-block;
@@ -154,9 +183,9 @@
       vertical-align: middle;
     }
     .swatch.parent { background: #666; }
-    .swatch.trans { background: #007bff; }
-    .swatch.axis { background: #000; }
-    .swatch.asymptote { background: #d9534f; }
+    .swatch.trans { background: #E60000; }
+    .swatch.axis { background: #000000; }
+    .swatch.asymptote { background: #F0B800; }
     .chartarea {
       flex: 1 1 400px;
       background: white;

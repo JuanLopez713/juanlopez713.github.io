@@ -112,7 +112,7 @@ const chart = new Chart(ctx, {
       {
         label: "Transformed",
         data: calcY(1, bBase, 0, 0, 1),
-        borderColor: "#007bff",
+        borderColor: "#E60000",
         borderWidth: 2,
         pointRadius: 0,
         fill: false
@@ -120,9 +120,9 @@ const chart = new Chart(ctx, {
       {
         label: "Asymptote",
         data: xValues.map(() => hShift),
-        borderColor: "#d9534f",
-        borderDash: [4, 4],
-        borderWidth: 1,
+        borderColor: "#F0B800",
+        borderDash: [5, 5],
+        borderWidth: 2,
         pointRadius: 0,
         fill: false
       },
@@ -158,8 +158,8 @@ const chart = new Chart(ctx, {
         label: "P'",
         type: "scatter",
         data: [{ x: 1, y: 0 }],
-        borderColor: "#007bff",
-        backgroundColor: "#007bff",
+        borderColor: "#E60000",
+        backgroundColor: "#E60000",
         pointRadius: 5
       }
     ]
