@@ -1,172 +1,203 @@
-// DOM Elements
-const standardFormBtn = document.getElementById('standardFormBtn');
-const vertexFormBtn = document.getElementById('vertexFormBtn');
-const standardFormDisplay = document.getElementById('standardForm');
-const vertexFormDisplay = document.getElementById('vertexForm');
+// =========================
+//  Quadratic Explorer JS
+//  Vertex form:  a(x-h)² + k
+// =========================
 
-// Standard form controls
-const aSlider = document.getElementById('a');
-const bSlider = document.getElementById('b');
-const cSlider = document.getElementById('c');
-const aValue = document.getElementById('aValue');
-const bValue = document.getElementById('bValue');
-const cValue = document.getElementById('cValue');
+import { commonChartConfig, fmt, ids, setupEventListeners } from '../shared/transformations.js';
 
-// Vertex form controls
-const aVertexSlider = document.getElementById('aVertex');
-const hSlider = document.getElementById('h');
-const kSlider = document.getElementById('k');
-const aVertexValue = document.getElementById('aVertexValue');
-const hValue = document.getElementById('hValue');
-const kValue = document.getElementById('kValue');
+// ----- Data helpers -----
+const STEP = 0.1;
+const xValues = Array.from(
+  { length: Math.round(10 / STEP + 1) },
+  (_, i) => -5 + i * STEP
+); // -5 → 5
 
-// Plot element
-const plotElement = document.getElementById('plot');
+const parentY = xValues.map(x => x * x);
+const calcY = (a, h, k) => xValues.map(x => a * Math.pow(x - h, 2) + k);
 
-// Initialize plot
-let plot = null;
+// ----- State (defaults) -----
+const DEFAULTS = {
+  aStretch: 1,    // vertical stretch
+  hShift: 0,      // horizontal shift
+  kShift: 0,      // vertical shift
+  vFlip: false    // vertical flip
+};
 
-// Function to convert vertex form to standard form
-function vertexToStandard(a, h, k) {
-    return {
-        a: a,
-        b: -2 * a * h,
-        c: a * h * h + k
-    };
-}
+let aStretch = DEFAULTS.aStretch,
+    hShift = DEFAULTS.hShift,
+    kShift = DEFAULTS.kShift,
+    vFlip = DEFAULTS.vFlip;
 
-// Function to convert standard form to vertex form
-function standardToVertex(a, b, c) {
-    const h = -b / (2 * a);
-    const k = c - (b * b) / (4 * a);
-    return {
-        a: a,
-        h: h,
-        k: k
-    };
-}
-
-// Function to generate points for plotting
-function generatePoints(a, b, c) {
-    const points = [];
-    const xRange = 10;
-    const step = 0.1;
-
-    for (let x = -xRange; x <= xRange; x += step) {
-        const y = a * x * x + b * x + c;
-        points.push({ x, y });
+// ----- Chart setup -----
+const ctx = document.getElementById("quadChart").getContext("2d");
+const chart = new Chart(ctx, {
+  type: "line",
+  data: {
+    labels: xValues,
+    datasets: [
+      {
+        label: "Parent",
+        data: parentY,
+        borderColor: "#666",
+        borderDash: [6, 6],
+        borderWidth: 2,
+        pointRadius: 0,
+        fill: false
+      },
+      {
+        label: "Transformed",
+        data: calcY(1, 0, 0),
+        borderColor: "#E60000",
+        borderWidth: 2,
+        pointRadius: 0,
+        fill: false
+      },
+      {
+        label: "y = 0",
+        data: xValues.map(() => 0),
+        borderColor: "#000",
+        borderWidth: 2,
+        pointRadius: 0,
+        fill: false
+      },
+      {
+        label: "x = 0",
+        type: "line",
+        data: [
+          { x: 0, y: -10 },
+          { x: 0, y: 10 }
+        ],
+        borderColor: "#000",
+        borderWidth: 2,
+        pointRadius: 0,
+        fill: false
+      },
+      {
+        label: "Axis of Symmetry",
+        type: "line",
+        data: [
+          { x: 0, y: -10 },
+          { x: 0, y: 10 }
+        ],
+        borderColor: "#F0B800",
+        borderWidth: 2,
+        borderDash: [5, 5],
+        pointRadius: 0,
+        fill: false
+      },
+      {
+        label: "Vertex",
+        type: "scatter",
+        data: [{ x: 0, y: 0 }],
+        borderColor: "#E60000",
+        backgroundColor: "#E60000",
+        pointRadius: 5
+      }
+    ]
+  },
+  options: {
+    ...commonChartConfig,
+    scales: {
+      ...commonChartConfig.scales,
+      y: {
+        ...commonChartConfig.scales.y,
+        min: -5,
+        max: 5
+      }
     }
+  }
+});
 
-    return points;
+// ----- DOM refs -----
+const aVal = ids("aVal"),
+      hVal = ids("hVal"),
+      kVal = ids("kVal");
+const flipChk = ids("flipChk");
+const vertexEqText = ids("vertexEqText"),
+      standardEqText = ids("standardEqText"),
+      parentEq = ids("parentEq");
+const vertexX = ids("vertexX"),
+      vertexY = ids("vertexY");
+const axisEqText = ids("axisEqText");
+const domainText = ids("domainText"),
+      rangeText = ids("rangeText");
+
+// ----- Helpers -----
+function formatVertexEq(a, h, k) {
+  const aStr = Math.abs(a) === 1 ? (a < 0 ? "-" : "") : fmt(a);
+  const hPart = h === 0 ? "x" : h > 0 ? `(x - ${fmt(h)})` : `(x + ${fmt(-h)})`;
+  const kStr = k === 0 ? "" : k > 0 ? ` + ${fmt(k)}` : ` - ${fmt(-k)}`;
+  return `${aStr}${hPart}²${kStr}`;
 }
 
-// Function to update the plot
-function updatePlot() {
-    let a, b, c;
-
-    if (standardFormBtn.classList.contains('active')) {
-        a = parseFloat(aSlider.value);
-        b = parseFloat(bSlider.value);
-        c = parseFloat(cSlider.value);
-
-        // Update vertex form controls
-        const vertex = standardToVertex(a, b, c);
-        aVertexSlider.value = vertex.a;
-        hSlider.value = vertex.h;
-        kSlider.value = vertex.k;
-        aVertexValue.textContent = vertex.a.toFixed(1);
-        hValue.textContent = vertex.h.toFixed(1);
-        kValue.textContent = vertex.k.toFixed(1);
-    } else {
-        const aVertex = parseFloat(aVertexSlider.value);
-        const h = parseFloat(hSlider.value);
-        const k = parseFloat(kSlider.value);
-
-        // Update standard form controls
-        const standard = vertexToStandard(aVertex, h, k);
-        aSlider.value = standard.a;
-        bSlider.value = standard.b;
-        cSlider.value = standard.c;
-        aValue.textContent = standard.a.toFixed(1);
-        bValue.textContent = standard.b.toFixed(1);
-        cValue.textContent = standard.c.toFixed(1);
-
-        a = standard.a;
-        b = standard.b;
-        c = standard.c;
-    }
-
-    const points = generatePoints(a, b, c);
-
-    const trace = {
-        x: points.map(p => p.x),
-        y: points.map(p => p.y),
-        type: 'scatter',
-        mode: 'lines',
-        name: 'f(x)',
-        line: {
-            color: '#E60000',
-            width: 2
-        }
-    };
-
-    const layout = {
-        title: 'Quadratic Function',
-        xaxis: {
-            title: 'x',
-            range: [-10, 10],
-            zeroline: true,
-            zerolinecolor: '#666',
-            zerolinewidth: 1,
-            gridcolor: '#ddd'
-        },
-        yaxis: {
-            title: 'f(x)',
-            range: [-10, 10],
-            zeroline: true,
-            zerolinecolor: '#666',
-            zerolinewidth: 1,
-            gridcolor: '#ddd'
-        },
-        plot_bgcolor: 'white',
-        paper_bgcolor: 'white',
-        showlegend: false,
-        margin: {
-            l: 50,
-            r: 50,
-            t: 50,
-            b: 50
-        }
-    };
-
-    Plotly.newPlot(plotElement, [trace], layout);
+function formatStandardEq(a, h, k) {
+  const aStr = fmt(a);
+  const b = -2 * a * h;
+  const c = a * h * h + k;
+  
+  let eq = `${aStr}x²`;
+  if (b !== 0) {
+    eq += b < 0 ? ` - ${fmt(Math.abs(b))}x` : ` + ${fmt(b)}x`;
+  }
+  if (c !== 0) {
+    eq += c < 0 ? ` - ${fmt(Math.abs(c))}` : ` + ${fmt(c)}`;
+  }
+  return eq;
 }
 
-// Event listeners for form toggle
-standardFormBtn.addEventListener('click', () => {
-    standardFormBtn.classList.add('active');
-    vertexFormBtn.classList.remove('active');
-    standardFormDisplay.style.display = 'block';
-    vertexFormDisplay.style.display = 'none';
-    updatePlot();
-});
+// ----- Update routine -----
+function update() {
+  aStretch = parseFloat(ids("aRange").value);
+  hShift = parseFloat(ids("hRange").value);
+  kShift = parseFloat(ids("kRange").value);
+  vFlip = flipChk.checked;
 
-vertexFormBtn.addEventListener('click', () => {
-    vertexFormBtn.classList.add('active');
-    standardFormBtn.classList.remove('active');
-    vertexFormDisplay.style.display = 'block';
-    standardFormDisplay.style.display = 'none';
-    updatePlot();
-});
+  const aSigned = vFlip ? -aStretch : aStretch;
 
-// Event listeners for sliders
-[aSlider, bSlider, cSlider, aVertexSlider, hSlider, kSlider].forEach(slider => {
-    slider.addEventListener('input', () => {
-        const valueDisplay = document.getElementById(slider.id + 'Value');
-        valueDisplay.textContent = parseFloat(slider.value).toFixed(1);
-        updatePlot();
-    });
-});
+  // readouts
+  aVal.textContent = aSigned;
+  hVal.textContent = hShift;
+  kVal.textContent = kShift;
 
-// Initial plot
-updatePlot(); 
+  // equations
+  parentEq.innerHTML = "x²";
+  vertexEqText.innerHTML = formatVertexEq(aSigned, hShift, kShift);
+  standardEqText.innerHTML = formatStandardEq(aSigned, hShift, kShift);
+  
+  // vertex & axis
+  vertexX.textContent = fmt(hShift);
+  vertexY.textContent = fmt(kShift);
+  axisEqText.textContent = fmt(hShift);
+
+  // domain & range
+  domainText.innerHTML = "( −∞ , ∞ )";
+  rangeText.innerHTML = aSigned > 0 ? 
+    `[ ${fmt(kShift)} , ∞ )` : 
+    `( −∞ , ${fmt(kShift)} ]`;
+
+  // datasets re‑compute
+  chart.data.datasets[0].data = parentY;
+  chart.data.datasets[1].data = calcY(aSigned, hShift, kShift);
+  chart.data.datasets[2].data = xValues.map(() => 0);
+  chart.data.datasets[3].data = [
+    { x: 0, y: -10 },
+    { x: 0, y: 10 }
+  ];
+  chart.data.datasets[4].data = [
+    { x: hShift, y: -10 },
+    { x: hShift, y: 10 }
+  ];
+  chart.data.datasets[5].data = [{ x: hShift, y: kShift }];
+
+  chart.options.plugins.pointLabels.points = [
+    { x: hShift, y: kShift, label: `(${fmt(hShift)}, ${fmt(kShift)})` }
+  ];
+
+  chart.update();
+}
+
+// Add event listeners
+setupEventListeners(["aRange", "hRange", "kRange", "flipChk"], update, DEFAULTS);
+
+// Initial update
+update(); 

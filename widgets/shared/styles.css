@@ -120,7 +120,7 @@ h1 {
 .info {
   font-size: 0.9rem;
   background: #f8f9fa;
-  padding: 0.5rem;
+  padding: 0.75rem;
   border-radius: 6px;
   margin-bottom: 0.5rem;
 }
@@ -130,10 +130,12 @@ h1 {
   display: inline-block;
 }
 
-.legend h3 {
+.legend h3,
+.info h3 {
   margin: 0 0 0.5rem 0;
   font-size: 1rem;
   color: #000000;
+  font-weight: 600;
 }
 
 .legend p,
@@ -152,7 +154,7 @@ h1 {
 
 .swatch.parent { background: #666; }
 .swatch.trans { background: #E60000; }
-.swatch.axis { background: #000000; }
+.swatch.axis { background: #F0B800; }
 .swatch.asymptote { background: #F0B800; }
 
 .chartarea {
