@@ -7,200 +7,12 @@
   <title>Exponential Transformations Explorer</title>
   <!-- Chart.js CDN -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <!-- Google Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Source+Sans+Pro:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <style>
-    body {
-      font-family: 'Source Sans Pro', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-      line-height: 1.6;
-      margin: 0;
-      padding: 0.5rem;
-      background-color: #f8f9fa;
-    }
-    .container {
-      max-width: 1200px;
-      margin: 0 auto;
-      background: white;
-      border-radius: 8px;
-      padding: 0.75rem;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-    }
-    .back-link {
-      display: inline-block;
-      margin-bottom: 0.5rem;
-      color: #E60000;
-      text-decoration: none;
-      font-weight: 500;
-    }
-    .back-link:hover {
-      color: #cc0000;
-      text-decoration: underline;
-    }
-    h1 {
-      color: #000000;
-      font-size: 1.25rem;
-      margin-bottom: 0.75rem;
-      text-align: center;
-    }
-    .controls-container {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 0.75rem;
-    }
-    .sidebar {
-      width: 320px;
-      flex: 0 0 320px;
-      display: flex;
-      flex-direction: column;
-      gap: 0.75rem;
-    }
-    @media (max-width: 768px) {
-      body {
-        padding: 0.25rem;
-      }
-      .container {
-        padding: 0.5rem;
-      }
-      .controls-container {
-        flex-direction: column;
-      }
-      .sidebar {
-        width: 100%;
-        flex: 1 1 100%;
-        align-items: center;
-        order: 1;
-      }
-      .chartarea {
-        order: 2;
-        padding: 0.5rem;
-        width: calc(100% - 1rem);
-        margin: 0 auto;
-      }
-      .controls {
-        width: calc(100% - 1rem);
-        max-width: 500px;
-      }
-      .info {
-        width: calc(100% - 1rem);
-        max-width: 500px;
-        margin-bottom: 0.5rem;
-      }
-      .legend {
-        width: calc(100% - 1rem);
-        max-width: 500px;
-        margin-top: 0.5rem;
-        order: 3;
-        text-align: left;
-        margin-left: auto;
-        margin-right: auto;
-        display: block;
-      }
-      canvas {
-        height: 300px;
-      }
-    }
-    .controls {
-      display: flex;
-      flex-direction: column;
-      gap: 0.5rem;
-    }
-    .control {
-      display: flex;
-      flex-direction: column;
-    }
-    .control.inline {
-      flex-direction: row;
-      align-items: center;
-      gap: 0.5rem;
-    }
-    .control label {
-      font-weight: 600;
-      margin-bottom: 0.15rem;
-      color: #000000;
-      font-size: 0.9rem;
-    }
-    .control input[type="range"] {
-      width: 100%;
-      margin: 0.15rem 0;
-      -webkit-appearance: none;
-      background: #f8f9fa;
-      height: 6px;
-      border-radius: 3px;
-      outline: none;
-    }
-    .control input[type="range"]::-webkit-slider-thumb {
-      -webkit-appearance: none;
-      width: 16px;
-      height: 16px;
-      background: #E60000;
-      border-radius: 50%;
-      cursor: pointer;
-      transition: all 0.2s ease;
-    }
-    .control input[type="range"]::-webkit-slider-thumb:hover {
-      transform: scale(1.1);
-    }
-    .control input[type="range"]::-moz-range-thumb {
-      width: 16px;
-      height: 16px;
-      background: #E60000;
-      border-radius: 50%;
-      cursor: pointer;
-      transition: all 0.2s ease;
-      border: none;
-    }
-    .control input[type="range"]::-moz-range-thumb:hover {
-      transform: scale(1.1);
-    }
-    .control input[type="checkbox"] {
-      margin: 0;
-    }
-    .legend,
-    .info {
-      font-size: 0.9rem;
-      background: #f8f9fa;
-      padding: 0.5rem;
-      border-radius: 6px;
-      margin-bottom: 0.5rem;
-    }
-    .legend {
-      margin-bottom: 0;
-      display: inline-block;
-    }
-    .legend h3 {
-      margin: 0 0 0.5rem 0;
-      font-size: 1rem;
-      color: #000000;
-    }
-    .legend p,
-    .info p {
-      margin: 0.1rem 0;
-      color: #000000;
-    }
-    .swatch {
-      display: inline-block;
-      width: 24px;
-      height: 3px;
-      margin-right: 6px;
-      vertical-align: middle;
-    }
-    .swatch.parent { background: #666; }
-    .swatch.trans { background: #E60000; }
-    .swatch.axis { background: #000000; }
-    .swatch.asymptote { background: #F0B800; }
-    .chartarea {
-      flex: 1 1 400px;
-      background: white;
-      padding: 0.5rem;
-      border-radius: 6px;
-      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-    }
-    canvas {
-      max-width: 100%;
-      height: 350px;
-    }
-  </style>
+  <!-- Shared styles -->
+  <link rel="stylesheet" href="../shared/styles.css">
 </head>
 
 <body>
@@ -246,8 +58,11 @@
 
         <!-- Equations & Range/Domain -->
         <div class="info">
+          <h3>Function Information</h3>
           <p><strong>Parent:</strong> f(x) = <span id="parentEq">2<sup>x</sup></span></p>
-          <p><strong>Transformed:</strong> g(x) = <span id="eqText">2<sup>x</sup></span></p>
+          <p><strong>Transformed (Exponential Form):</strong><br>g(x) = <span id="eqText">2<sup>x</sup></span></p>
+          <p><strong>Transformed (Standard Form):</strong><br>g(x) = <span id="standardEqText">2<sup>x</sup></span></p>
+          <p><strong>Key Point:</strong> (<span id="keyX">0</span>, <span id="keyY">1</span>)</p>
           <p><strong>Asymptote:</strong> y = <span id="asymptoteText">0</span></p>
           <p><strong>Domain:</strong> <span id="domainText">( −∞ , ∞ )</span></p>
           <p><strong>Range:</strong> <span id="rangeText">( 0 , ∞ )</span></p>
