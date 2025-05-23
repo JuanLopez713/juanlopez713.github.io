@@ -66,10 +66,10 @@ let currentStep = 0;
 function drawInitialForm(ctx, a, b, c) {
   const width = canvas.width;
   const height = canvas.height;
-  const scale = Math.min(width, height) / 12;
+  const scale = Math.min(width, height) / 10;
   const centerY = height / 2;
   const MARGIN  = 15;
-  const SPACING = scale * 1.5;
+  const SPACING = scale * 1.2;
 
   const squareSize = scale;
   const rectWidth  = scale * Math.abs(b);
@@ -87,7 +87,7 @@ function drawInitialForm(ctx, a, b, c) {
   ctx.fillStyle = "#E60000";
   ctx.fillRect(currentX, squareTop, squareSize, squareSize);
   ctx.fillStyle = "#fff";
-  ctx.fillText("x²", currentX + squareSize / 2, centerY);
+  ctx.fillText("x²", currentX + squareSize / 2, squareTop + squareSize / 2);
 
   // plus after red
   ctx.fillStyle = "#000";
@@ -98,7 +98,7 @@ function drawInitialForm(ctx, a, b, c) {
   ctx.fillStyle = "#F0B800";
   ctx.fillRect(yellowLeft, squareTop, rectWidth, scale);
   ctx.fillStyle = "#000";
-  ctx.fillText(`${fmt(b)}x`, yellowLeft + rectWidth / 2, centerY);
+  ctx.fillText(`${fmt(b)}x`, yellowLeft + rectWidth / 2, squareTop + scale / 2);
 
   // plus after yellow
   ctx.fillText("+", yellowLeft + rectWidth + SPACING / 2, centerY);
@@ -108,26 +108,26 @@ function drawInitialForm(ctx, a, b, c) {
   ctx.fillStyle = "#00B800";
   ctx.fillRect(greenLeft, squareTop, constSize, constSize);
   ctx.fillStyle = "#000";
-  ctx.fillText(`${fmt(c)}`, greenLeft + constSize / 2, centerY);
+  ctx.fillText(`${fmt(c)}`, greenLeft + constSize / 2, squareTop + constSize / 2);
 }
 
 function drawMoveConstant(ctx, a, b, c) {
   const width = canvas.width;
   const height = canvas.height;
-  const scale = Math.min(width, height) / 12;
+  const scale = Math.min(width, height) / 10;
   const centerY = height / 2;
   const MARGIN  = 15;
-  const SPACING = scale * 1.5;
+  const SPACING = scale * 1.2;
 
   const squareSize = scale;
   const rectWidth  = scale * Math.abs(b);
   const constSize  = scale * Math.sqrt(Math.abs(c));
 
-  // Group: [RedSquare YellowRect] EQ GreenSquare
   const leftBlockWidth = squareSize + rectWidth;
   const groupWidth = leftBlockWidth + SPACING + constSize;
   const currentX   = (width - groupWidth) / 2;
   const squareTop  = centerY - squareSize / 2;
+  const effectiveCenterY = squareTop + squareSize / 2;
 
   ctx.font = "bold 16px 'Source Sans Pro'";
   ctx.textBaseline = "middle";
@@ -137,10 +137,10 @@ function drawMoveConstant(ctx, a, b, c) {
   ctx.fillRect(currentX, squareTop, squareSize, squareSize);
   ctx.fillStyle = "#fff";
   ctx.textAlign = "center";
-  ctx.fillText("x²", currentX + squareSize / 2, centerY);
+  ctx.fillText("x²", currentX + squareSize / 2, effectiveCenterY);
   ctx.fillStyle = "#000";
   ctx.textAlign = "right";
-  ctx.fillText("x", currentX - MARGIN, centerY);
+  ctx.fillText("x", currentX - MARGIN, effectiveCenterY);
   ctx.textAlign = "center";
   ctx.textBaseline = "bottom";
   ctx.fillText("x", currentX + squareSize / 2, squareTop - MARGIN);
@@ -152,14 +152,14 @@ function drawMoveConstant(ctx, a, b, c) {
   ctx.fillRect(yellowLeft, squareTop, rectWidth, scale);
   ctx.fillStyle = "#000";
   ctx.textAlign = "center";
-  ctx.fillText(`${fmt(b)}x`, yellowLeft + rectWidth / 2, centerY);
+  ctx.fillText(`${fmt(b)}x`, yellowLeft + rectWidth / 2, effectiveCenterY);
   ctx.fillText(`${fmt(b)}`,  yellowLeft + rectWidth / 2, squareTop - MARGIN);
   labelXBelow(ctx, yellowLeft + rectWidth / 2, squareTop + scale, MARGIN);
 
   // ----- equal sign -----
   ctx.fillStyle = "#000";
   ctx.textAlign = "center";
-  ctx.fillText("=", yellowLeft + rectWidth + SPACING / 2, centerY);
+  ctx.fillText("=", yellowLeft + rectWidth + SPACING / 2, effectiveCenterY);
 
   // ----- green constant square -----
   const greenLeft = yellowLeft + rectWidth + SPACING;
@@ -173,20 +173,22 @@ function drawMoveConstant(ctx, a, b, c) {
 function drawSplitRectangles(ctx, a, b, c) {
   const width = canvas.width;
   const height = canvas.height;
-  const scale = Math.min(width, height) / 12;
-  const centerY = height / 2;
+  const scale = Math.min(width, height) / 10;
   const MARGIN  = 15;
-  const SPACING = scale * 1.5;
+  const SPACING = scale * 1.2;
 
   const squareSize = scale;
   const splitRectWidth  = scale * Math.abs(b / 2);
   const constSize  = scale * Math.sqrt(Math.abs(c));
 
-  // Group: [RedSquare RightYellowRect] EQ GreenSquare (BottomYellowRect is part of RedSquare block visually for width calc)
+  const groupHeight = squareSize + splitRectWidth;
+  const startY    = (height - groupHeight) / 2;
+  const squareTop = startY;
+  const topRowCenterY = startY + squareSize / 2;
+
   const leftBlockWidth = squareSize + splitRectWidth;
   const groupWidth = leftBlockWidth + SPACING + constSize;
   const currentX   = (width - groupWidth) / 2;
-  const squareTop  = centerY - squareSize / 2;
 
   ctx.font = "bold 16px 'Source Sans Pro'";
   ctx.textBaseline = "middle";
@@ -196,10 +198,10 @@ function drawSplitRectangles(ctx, a, b, c) {
   ctx.fillRect(currentX, squareTop, squareSize, squareSize);
   ctx.fillStyle = "#fff";
   ctx.textAlign = "center";
-  ctx.fillText("x²", currentX + squareSize / 2, centerY);
+  ctx.fillText("x²", currentX + squareSize / 2, topRowCenterY);
   ctx.fillStyle = "#000";
   ctx.textAlign = "right";
-  ctx.fillText("x", currentX - MARGIN, centerY);
+  ctx.fillText("x", currentX - MARGIN, topRowCenterY);
   ctx.textAlign = "center";
   ctx.textBaseline = "bottom";
   ctx.fillText("x", currentX + squareSize / 2, squareTop - MARGIN);
@@ -211,7 +213,7 @@ function drawSplitRectangles(ctx, a, b, c) {
   ctx.fillRect(rightRectLeft, squareTop, splitRectWidth, scale);
   ctx.fillStyle = "#000";
   ctx.textAlign = "center";
-  ctx.fillText(`${fmt(b/2)}x`, rightRectLeft + splitRectWidth/2, centerY);
+  ctx.fillText(`${fmt(b/2)}x`, rightRectLeft + splitRectWidth/2, topRowCenterY);
   ctx.fillText(`${fmt(b/2)}`,  rightRectLeft + splitRectWidth/2, squareTop - MARGIN);
   labelXBelow(ctx, rightRectLeft + splitRectWidth / 2, squareTop + scale, MARGIN);
 
@@ -229,7 +231,7 @@ function drawSplitRectangles(ctx, a, b, c) {
   // equal sign
   ctx.fillStyle = "#000";
   ctx.textAlign = "center";
-  ctx.fillText("=", rightRectLeft + splitRectWidth + SPACING / 2, centerY);
+  ctx.fillText("=", rightRectLeft + splitRectWidth + SPACING / 2, topRowCenterY);
 
   // green square
   const greenLeft = rightRectLeft + splitRectWidth + SPACING;
@@ -243,21 +245,24 @@ function drawSplitRectangles(ctx, a, b, c) {
 function drawCompletingSquare(ctx, a, b, c) {
   const width = canvas.width;
   const height = canvas.height;
-  const scale = Math.min(width, height) / 12;
-  const centerY = height / 2;
+  const scale = Math.min(width, height) / 10;
   const MARGIN  = 15;
-  const SPACING = scale * 1.5;
+  const SPACING = scale * 1.2;
 
   const squareSize = scale;
   const splitRectWidth  = scale * Math.abs(b / 2);
-  const completingSize = splitRectWidth;
+  const completingHeight = splitRectWidth;
   const rightConstSize = scale * Math.sqrt(Math.abs(-c + (b/2)*(b/2)));
+  
+  const groupHeight = squareSize + completingHeight;
+  const startY    = (height - groupHeight) / 2;
+  const squareTop = startY;
+  const topRowCenterY = startY + squareSize / 2;
 
   const leftBlockWidth = squareSize + splitRectWidth;
   const groupWidth = leftBlockWidth + SPACING + rightConstSize;
   const currentX   = (width - groupWidth) / 2;
-  const squareTop  = centerY - squareSize / 2;
-
+  
   ctx.font = "bold 16px 'Source Sans Pro'";
   ctx.textBaseline = "middle";
 
@@ -266,10 +271,10 @@ function drawCompletingSquare(ctx, a, b, c) {
   ctx.fillRect(currentX, squareTop, squareSize, squareSize);
   ctx.fillStyle = "#fff";
   ctx.textAlign = "center";
-  ctx.fillText("x²", currentX + squareSize/2, centerY);
+  ctx.fillText("x²", currentX + squareSize/2, topRowCenterY);
   ctx.fillStyle = "#000";
   ctx.textAlign = "right";
-  ctx.fillText("x", currentX - MARGIN, centerY);
+  ctx.fillText("x", currentX - MARGIN, topRowCenterY);
   ctx.textAlign = "center";
   ctx.textBaseline = "bottom";
   ctx.fillText("x", currentX + squareSize/2, squareTop - MARGIN);
@@ -281,7 +286,7 @@ function drawCompletingSquare(ctx, a, b, c) {
   ctx.fillRect(rightRectLeft, squareTop, splitRectWidth, scale);
   ctx.fillStyle = "#000";
   ctx.textAlign = "center";
-  ctx.fillText(`${fmt(b/2)}x`, rightRectLeft + splitRectWidth/2, centerY);
+  ctx.fillText(`${fmt(b/2)}x`, rightRectLeft + splitRectWidth/2, topRowCenterY);
   ctx.fillText(`${fmt(b/2)}`,  rightRectLeft + splitRectWidth/2, squareTop - MARGIN);
   labelXBelow(ctx, rightRectLeft + splitRectWidth/2, squareTop + scale, MARGIN);
 
@@ -298,22 +303,22 @@ function drawCompletingSquare(ctx, a, b, c) {
 
   // completing small square (semi-transparent yellow)
   ctx.fillStyle = "rgba(240,184,0,0.3)";
-  ctx.fillRect(rightRectLeft, squareTop + squareSize, completingSize, completingSize);
+  ctx.fillRect(rightRectLeft, squareTop + squareSize, splitRectWidth, completingHeight);
   ctx.fillStyle = "#000";
   ctx.textAlign = "center";
-  ctx.fillText(`${fmt((b/2)*(b/2))}`, rightRectLeft + completingSize / 2, squareTop + squareSize + completingSize / 2);
+  ctx.fillText(`${fmt((b/2)*(b/2))}`, rightRectLeft + splitRectWidth / 2, squareTop + squareSize + completingHeight / 2);
   ctx.textAlign = "center";
   ctx.textBaseline = "bottom";
-  ctx.fillText(`${fmt(b/2)}`, rightRectLeft + completingSize / 2, squareTop + squareSize + completingSize + MARGIN);
+  ctx.fillText(`${fmt(b/2)}`, rightRectLeft + splitRectWidth / 2, squareTop + squareSize + completingHeight + MARGIN);
   ctx.textBaseline = "middle";
   ctx.textAlign = "left";
-  ctx.fillText(`${fmt(b/2)}`, rightRectLeft + completingSize + MARGIN/2, squareTop + squareSize + completingSize / 2);
+  ctx.fillText(`${fmt(b/2)}`, rightRectLeft + splitRectWidth + MARGIN/2, squareTop + squareSize + completingHeight / 2);
   ctx.textAlign = "center";
 
   // equal sign
   ctx.fillStyle = "#000";
   ctx.textAlign = "center";
-  ctx.fillText("=", rightRectLeft + splitRectWidth + SPACING / 2, centerY);
+  ctx.fillText("=", rightRectLeft + splitRectWidth + SPACING / 2, topRowCenterY);
 
   // green square (constant term on right)
   const greenLeft = rightRectLeft + splitRectWidth + SPACING;
@@ -327,10 +332,10 @@ function drawCompletingSquare(ctx, a, b, c) {
 function drawCompletedSquare(ctx, a, b, c) {
   const width = canvas.width;
   const height = canvas.height;
-  const scale = Math.min(width, height) / 12;
+  const scale = Math.min(width, height) / 10;
   const centerY = height / 2;
   const MARGIN  = 15;
-  const SPACING = scale * 1.5;
+  const SPACING = scale * 1.2;
 
   const completedSquareSide = scale * (1 + Math.abs(b/2));
   const rightConstSize  = scale * Math.sqrt(Math.abs(-c + (b/2)*(b/2)));
@@ -338,6 +343,7 @@ function drawCompletedSquare(ctx, a, b, c) {
   const groupWidth = completedSquareSide + SPACING + rightConstSize;
   const currentX   = (width - groupWidth) / 2;
   const squareTop  = centerY - completedSquareSide / 2;
+  const effectiveCenterY = squareTop + completedSquareSide / 2;
 
   ctx.font = "bold 16px 'Source Sans Pro'";
   ctx.textBaseline = "middle";
@@ -347,10 +353,10 @@ function drawCompletedSquare(ctx, a, b, c) {
   ctx.fillRect(currentX, squareTop, completedSquareSide, completedSquareSide);
   ctx.fillStyle = "#fff";
   ctx.textAlign = "center";
-  ctx.fillText(`(x + ${fmt(b/2)})²`, currentX + completedSquareSide / 2, centerY);
+  ctx.fillText(`(x + ${fmt(b/2)})²`, currentX + completedSquareSide / 2, effectiveCenterY);
   ctx.fillStyle = "#000";
   ctx.textAlign = "right";
-  ctx.fillText(`x + ${fmt(b/2)}`, currentX - MARGIN, centerY);
+  ctx.fillText(`x + ${fmt(b/2)}`, currentX - MARGIN, effectiveCenterY);
   ctx.textAlign = "center";
   ctx.textBaseline = "bottom";
   ctx.fillText(`x + ${fmt(b/2)}`, currentX + completedSquareSide / 2, squareTop - MARGIN);
@@ -359,7 +365,7 @@ function drawCompletedSquare(ctx, a, b, c) {
   // equal sign
   ctx.fillStyle = "#000";
   ctx.textAlign = "center";
-  ctx.fillText("=", currentX + completedSquareSide + SPACING / 2, centerY);
+  ctx.fillText("=", currentX + completedSquareSide + SPACING / 2, effectiveCenterY);
 
   // green square (constant term on right)
   const greenLeft = currentX + completedSquareSide + SPACING;

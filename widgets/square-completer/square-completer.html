@@ -53,31 +53,28 @@
       /* .sidebar itself is order: 1 (from shared styles) */
       /* .chartarea is order: 2 (from shared styles) */
 
-      /* Styling for elements now INSIDE .sidebar on mobile */
-      /* Shared .sidebar style sets align-items:center, so these will be centered horizontally */
-      /* We want them to take available width within the sidebar */
-      .step-info,
-      .controls,
-      .step-controls {
-        width: 100%; /* Take full width of parent sidebar */
-        max-width: 500px; /* Apply max-width if sidebar is wider */
-        margin-left: auto; /* Center within sidebar if sidebar is wider than max-width */
+      /* Update selectors from .step-info to .info for items inside .sidebar on mobile */
+      .sidebar .info, /* Targeting .info specifically within .sidebar */
+      .sidebar .controls,
+      .sidebar .step-controls {
+        width: 100%; 
+        max-width: 500px; 
+        margin-left: auto; 
         margin-right: auto;
       }
 
-      .step-info {
+      .sidebar .info { /* Targeting .info specifically within .sidebar */
         order: 1; /* Order within sidebar */
-        padding-top: 0.25rem;
-        padding-bottom: 0.25rem;
-        padding-left: 0.75rem;
+        padding-top: 0.25rem;    /* Keep compact padding for this box on mobile */
+        padding-bottom: 0.25rem; 
+        padding-left: 0.75rem;  /* Standard horizontal */
         padding-right: 0.75rem;
       }
-      .controls { 
+      .sidebar .controls { 
         order: 2; /* Order within sidebar */
       }
-      .step-controls {
+      .sidebar .step-controls {
         order: 3; /* Order within sidebar */
-        /* justify-content: center; is useful if buttons don't take full width */
       }
     }
   </style>
@@ -89,8 +86,8 @@
     <h1>Geometric Square Completer</h1>
     <div class="controls-container">
       <aside class="sidebar">
-        <div class="step-info">
-          <h4>Step <span id="currentStepDisplay">1</span> of <span id="totalStepsDisplay">5</span></h4>
+        <div class="info" id="stepInfoBox">
+          <h3>Step <span id="currentStepDisplay">1</span> of <span id="totalStepsDisplay">5</span></h3>
           <p id="stepDescription">Start with the quadratic expression in standard form.</p>
           <div class="expression" id="currentExpression">x² + 4x + 3</div>
         </div>
