@@ -3,7 +3,8 @@
 //  Vertex form:  a(x-h)² + k
 // =========================
 
-import { commonChartConfig, fmt, ids, setupEventListeners } from '../shared/transformations.js';
+import { ids, fmt } from '../shared/shared-utils.js';
+import { commonChartConfig, setupEventListeners } from '../shared/transformations.js';
 
 // ----- Data helpers -----
 const STEP = 0.1;

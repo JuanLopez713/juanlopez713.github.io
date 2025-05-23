@@ -3,7 +3,8 @@
 //  Geometric visualization of completing the square
 // =========================
 
-import { fmt, ids, setupEventListeners } from '../shared/transformations.js';
+import { ids, fmt } from '../shared/shared-utils.js';
+import { setupEventListeners } from '../shared/transformations.js';
 
 // ----- State (defaults) -----
 const DEFAULTS = {
