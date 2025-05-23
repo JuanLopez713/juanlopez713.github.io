@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Geometric Square Completer</title>
+  <!-- Chart.js CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Source+Sans+Pro:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <!-- Shared styles -->
+  <link rel="stylesheet" href="../shared/styles.css">
+  <style>
+    /* .geometric-view specific styles removed, covered by .chartarea in shared/styles.css */
+    
+    /* Default local style for .expression */
+    .expression {
+      font-family: 'Times New Roman', serif;
+      font-style: italic;
+      font-size: 1.2rem;
+      margin: 0.5rem 0;
+    }
+    
+    .step-controls {
+      display: flex;
+      gap: 1rem;
+      margin-top: 1rem; 
+    }
+    
+    .step-button {
+      padding: 0.5rem 1rem;
+      background: #E60000;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-weight: 500;
+      transition: all 0.2s ease;
+      flex-grow: 1; 
+    }
+    
+    .step-button:hover { background: #cc0000; transform: translateY(-1px); }
+    
+    .step-button:disabled { background: #ccc; cursor: not-allowed; transform: none; }
+
+    /* Remove desktop styles for individual .step-info, .controls, .step-controls */
+    /* Their container, .sidebar, will get fixed width from shared styles */
+
+    @media (max-width: 768px) {
+      /* .sidebar itself is order: 1 (from shared styles) */
+      /* .chartarea is order: 2 (from shared styles) */
+
+      /* Styling for elements now INSIDE .sidebar on mobile */
+      /* Shared .sidebar style sets align-items:center, so these will be centered horizontally */
+      /* We want them to take available width within the sidebar */
+      .step-info,
+      .controls,
+      .step-controls {
+        width: 100%; /* Take full width of parent sidebar */
+        max-width: 500px; /* Apply max-width if sidebar is wider */
+        margin-left: auto; /* Center within sidebar if sidebar is wider than max-width */
+        margin-right: auto;
+      }
+
+      .step-info {
+        order: 1; /* Order within sidebar */
+        padding-top: 0.25rem;
+        padding-bottom: 0.25rem;
+        padding-left: 0.75rem;
+        padding-right: 0.75rem;
+      }
+      .controls { 
+        order: 2; /* Order within sidebar */
+      }
+      .step-controls {
+        order: 3; /* Order within sidebar */
+        /* justify-content: center; is useful if buttons don't take full width */
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="container">
+    <a href="../../index.html" class="back-link">← Back to Home</a>
+    <h1>Geometric Square Completer</h1>
+    <div class="controls-container">
+      <aside class="sidebar">
+        <div class="step-info">
+          <h4>Step <span id="currentStepDisplay">1</span> of <span id="totalStepsDisplay">5</span></h4>
+          <p id="stepDescription">Start with the quadratic expression in standard form.</p>
+          <div class="expression" id="currentExpression">x² + 4x + 3</div>
+        </div>
+        <div class="controls">
+          <div class="control">
+            <label>a (coefficient of x²): 1</label>
+          </div>
+          <div class="control">
+            <label for="bRange">b (coefficient of x): <span id="bVal">4</span></label>
+            <input id="bRange" type="range" min="-10" max="10" step="1" value="4" />
+          </div>
+          <div class="control">
+            <label for="cRange">c (constant term): <span id="cVal">3</span></label>
+            <input id="cRange" type="range" min="-10" max="10" step="1" value="3" />
+          </div>
+        </div>
+        <div class="step-controls">
+          <button id="prevStep" class="step-button" disabled>Previous Step</button>
+          <button id="nextStep" class="step-button">Next Step</button>
+        </div>
+      </aside>
+      <main class="chartarea">
+        <canvas id="geometricCanvas"></canvas>
+      </main>
+    </div>
+  </div>
+
+  <!-- JS -->
+  <script type="module" src="square-completer.js"></script>
+</body>
+
+</html> 
