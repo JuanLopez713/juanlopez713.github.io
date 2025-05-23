@@ -1,3 +1,5 @@
+import { ids, fmt } from './shared-utils.js'; // Import generic utils
+
 // Common functionality for transformation widgets
 
 // Point label plugin for Chart.js
@@ -51,7 +53,12 @@ const pointLabelPlugin = {
 };
 
 // Register the plugin
-Chart.register(pointLabelPlugin);
+// Ensure Chart is defined before calling this, or guard it.
+if (typeof Chart !== 'undefined') {
+  Chart.register(pointLabelPlugin);
+} else {
+  console.warn("Chart.js not found. pointLabelPlugin not registered.");
+}
 
 // Common chart configuration
 const commonChartConfig = {
@@ -82,11 +89,8 @@ const commonChartConfig = {
 };
 
 // Common helper functions
-const fmt = (n) =>
-  Math.abs(n) >= 1000 ? n.toFixed(0) : parseFloat(n.toFixed(2));
-
-// Common DOM helpers
-const ids = (id) => document.getElementById(id);
+// REMOVED: const fmt = (n) => ...
+// REMOVED: const ids = (id) => ...
 
 // Common event listener setup
 function setupEventListeners(inputIds, updateFunction, defaults) {
@@ -118,7 +122,7 @@ function setupEventListeners(inputIds, updateFunction, defaults) {
 export {
   pointLabelPlugin,
   commonChartConfig,
-  fmt,
-  ids,
-  setupEventListeners
+  // fmt, // No longer exported from here
+  // ids, // No longer exported from here
+  setupEventListeners // Still uses ids, but ids is now imported
 }; 
