@@ -50,6 +50,48 @@
         margin-bottom: 0.75rem;
     }
 
+    /* Make standalone widget action buttons in sidebar controls full width, 
+       EXCEPT if they are in a .button-group */
+    .sidebar .control:not(.button-group) > .widget-action-button {
+        width: 100%;
+    }
+
+    /* Styles for a group of buttons */
+    .sidebar .button-group {
+        display: flex;
+        flex-direction: row; /* Ensure side-by-side */
+        gap: 0.5rem;
+        margin-top: 1rem; 
+    }
+    .sidebar .button-group > .widget-action-button {
+        flex-grow: 1;
+        flex-basis: 0; /* Distribute space equally */
+    }
+
+    /* Specific button styling */
+    #undoButton {
+        background-color: #F0B800; /* Default Yellow */
+        color: #000000; /* Black text on yellow */
+    }
+    #undoButton:hover {
+        background-color: #F0B800; /* Hover Yellow (can be slightly different if desired) */
+        color: #000000; 
+        /* filter: brightness(90%); */ /* Example for a subtle hover change */
+    }
+    #undoButton:disabled {
+        background-color: #ccc !important; /* Ensure disabled style overrides default yellow */
+        color: #666 !important;
+    }
+
+    #resetButton {
+        background-color: #6c757d; /* Default Gray */
+        color: white;
+    }
+    #resetButton:hover {
+        background-color: #E60000; /* Hover Red (from original .widget-action-button hover) */
+        color: white;
+    }
+
     .hanoi-disk.invalid-move-shake {
       animation: shake 0.5s cubic-bezier(.36,.07,.19,.97) both;
       transform: translate3d(0, 0, 0);
@@ -76,15 +118,37 @@
     }
 
     @media (max-width: 768px) {
-        .sidebar .info { /* Ensure info box is full width on mobile */
-            width: 100%;
-            max-width: 500px;
-            margin-left: auto;
-            margin-right: auto;
-        }
-        .hanoi-game-area svg {
-            height: 250px; /* Mobile height like canvas */
-        }
+      .controls-container .chartarea { order: 1; }
+      .controls-container .sidebar { order: 2; }
+
+      .sidebar > div { 
+        box-sizing: border-box;
+        width: 100%; 
+        max-width: 500px; 
+        margin-left: auto; 
+        margin-right: auto;
+        margin-bottom: 0.75rem; 
+      }
+      .sidebar > div:last-child {
+        margin-bottom: 0; 
+      }
+
+      .sidebar .info { 
+        order: 1; 
+        padding-top: 0.25rem; 
+        padding-bottom: 0.25rem; 
+        padding-left: 0.75rem; 
+        padding-right: 0.75rem; 
+      }
+      .sidebar .info h3 {
+        text-align: center;
+      }
+      .sidebar .controls { order: 2; } 
+      .sidebar .control.button-group { order: 3; }
+
+      .hanoi-game-area svg {
+        height: 250px; /* Mobile height like canvas */
+      }
     }
   </style>
 </head>
@@ -106,10 +170,13 @@
           <h3>Game Information</h3>
           <p>Moves Taken: <span id="movesTakenDisplay" class="info-readout">0</span></p>
           <p>Optimal Moves: <span id="optimalMovesDisplay" class="info-readout">7</span></p>
+          <p>Undos Used: <span id="undoCountDisplay" class="info-readout">0</span></p>
         </div>
         
-        <div class="control" style="margin-top: 1rem;"> <!-- Add some space before reset button -->
-            <button id="resetButton" class="button" style="width: 100%;">Reset Game</button>
+        <!-- Buttons Grouped -->
+        <div class="control button-group">
+            <button id="undoButton" class="widget-action-button" disabled>Undo Move</button>
+            <button id="resetButton" class="widget-action-button">Reset Game</button>
         </div>
 
       </aside>

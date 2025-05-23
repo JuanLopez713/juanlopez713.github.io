@@ -30,27 +30,16 @@
       /* text-align: center; will be inherited */
     }
     
+    /* Styles for step controls buttons */
     .step-controls {
       display: flex;
       gap: 1rem;
       margin-top: 1rem; 
     }
-    
-    .step-button {
-      padding: 0.5rem 1rem;
-      background: #E60000;
-      color: white;
-      border: none;
-      border-radius: 4px;
-      cursor: pointer;
-      font-weight: 500;
-      transition: all 0.2s ease;
-      flex-grow: 1; 
+    .step-controls .widget-action-button { /* NEW: Target shared buttons within step-controls */
+      flex-grow: 1;
+      flex-basis: 0; /* Distribute space equally */
     }
-    
-    .step-button:hover { background: #cc0000; transform: translateY(-1px); }
-    
-    .step-button:disabled { background: #ccc; cursor: not-allowed; transform: none; }
 
     /* Remove desktop styles for individual .step-info, .controls, .step-controls */
     /* Their container, .sidebar, will get fixed width from shared styles */
@@ -105,8 +94,8 @@
       </main>
       <aside class="sidebar">
         <div class="step-controls">
-          <button id="prevStep" class="step-button" disabled>Previous Step</button>
-          <button id="nextStep" class="step-button">Next Step</button>
+          <button id="prevStep" class="widget-action-button" disabled>Previous Step</button>
+          <button id="nextStep" class="widget-action-button">Next Step</button>
         </div>
         <div class="info" id="stepInfoBox">
           <h3>Step <span id="currentStepDisplay">1</span> of <span id="totalStepsDisplay">5</span></h3>

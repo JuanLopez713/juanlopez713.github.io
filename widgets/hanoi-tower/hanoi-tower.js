@@ -8,6 +8,8 @@ const numDisksDisplay = ids('numDisksDisplay');
 const movesTakenDisplay = ids('movesTakenDisplay');
 const optimalMovesDisplay = ids('optimalMovesDisplay');
 const resetButton = ids('resetButton');
+const undoButton = ids('undoButton'); // New button
+const undoCountDisplay = ids('undoCountDisplay'); // New display
 const hanoiSvg = ids('hanoiSvg');
 const hanoiWarning = ids('hanoiWarning'); // Get the warning element
 
@@ -32,6 +34,8 @@ let moveCount = 0;
 let selectedDisk = null; // { size: number, originalTowerIndex: number }
 let isGameWon = false;
 let showGhostStack = true; // New state variable
+let moveHistory = []; // For undo
+let undoCount = 0;    // For undo counter
 
 // --- Disk Colors (match CSS) ---
 const DISK_COLORS = [
@@ -54,10 +58,14 @@ function initGame(n) {
   selectedDisk = null;
   isGameWon = false;
   showGhostStack = true; // Reset ghost stack visibility on new game/reset
+  moveHistory = []; // Clear history
+  undoCount = 0;    // Reset undo count
 
   numDisksDisplay.textContent = numDisks;
   movesTakenDisplay.textContent = moveCount;
   optimalMovesDisplay.textContent = calculateOptimalMoves(numDisks);
+  undoCountDisplay.textContent = undoCount; // Update display
+  undoButton.disabled = true; // Disable undo at start
   
   renderGame();
 }
@@ -76,25 +84,30 @@ function renderGame() {
   continuousBase.setAttribute('class', 'hanoi-tower'); // Use same class for color
   continuousBase.setAttribute('rx', 3);
   continuousBase.setAttribute('ry', 3);
+  continuousBase.setAttribute('id', 'hanoiGameBase');
   hanoiSvg.appendChild(continuousBase);
 
   // Draw Towers (Pegs) and Click Targets
   for (let i = 0; i < NUM_TOWERS; i++) {
     const towerX = TOWER_SPACING * (i + 1);
-    const pegTopY = TOWER_BASE_Y - (DISK_HEIGHT * (numDisks + 1));
     const pegHeight = DISK_HEIGHT * (numDisks + 1);
+    const pegTopY = TOWER_BASE_Y - pegHeight;
 
-    // --- Invisible Click Target --- 
+    // --- Invisible Click Target (Revised Geometry) ---
+    // Starts one disk height above the visible peg, extends down to the top of the continuous base.
+    const clickTargetVisualY = pegTopY - DISK_HEIGHT; // Where visually it might seem to start for a drop
+    const clickTargetActualY = Math.max(0, pegTopY - DISK_HEIGHT); // Ensure it doesn't go above SVG 0
+    const clickTargetHeight = TOWER_BASE_Y - clickTargetActualY;
+
     const clickTarget = document.createElementNS("http://www.w3.org/2000/svg", "rect");
     clickTarget.setAttribute('x', towerX - TOWER_WIDTH / 2 - CLICK_TARGET_WIDTH_PADDING);
-    clickTarget.setAttribute('y', pegTopY - DISK_HEIGHT); // Start slightly above where disks might be picked from
+    clickTarget.setAttribute('y', clickTargetActualY);
     clickTarget.setAttribute('width', TOWER_WIDTH + 2 * CLICK_TARGET_WIDTH_PADDING);
-    clickTarget.setAttribute('height', pegHeight + DISK_HEIGHT * 2); // Cover full peg height and a bit more
+    clickTarget.setAttribute('height', clickTargetHeight > 0 ? clickTargetHeight : DISK_HEIGHT); // Ensure positive height
     clickTarget.setAttribute('fill', 'transparent'); 
-    // Or use a very low opacity fill for debugging: clickTarget.setAttribute('fill', 'rgba(0,255,0,0.1)');
     clickTarget.setAttribute('data-tower-index', i);
-    clickTarget.style.cursor = 'pointer'; // Indicate it's clickable
-    hanoiSvg.appendChild(clickTarget); // Add click target first (behind peg)
+    clickTarget.style.cursor = 'pointer'; 
+    hanoiSvg.appendChild(clickTarget); 
 
     // --- Visible Peg --- 
     const peg = document.createElementNS("http://www.w3.org/2000/svg", "rect");
@@ -108,8 +121,7 @@ function renderGame() {
     } else {
       peg.setAttribute('fill', TOWER_COLORS[i]);
     }
-    // peg.setAttribute('data-tower-index', i); // Click target handles this now for tower area clicks
-    peg.style.pointerEvents = 'none'; // Make actual peg non-interactive if click target is primary
+    peg.style.pointerEvents = 'none'; 
     hanoiSvg.appendChild(peg);
   }
 
@@ -219,24 +231,36 @@ function handleTowerClick(towerIndex) {
   } else { // Try to place the selected disk
     const topDiskOnTargetTower = towers[towerIndex].length > 0 ? towers[towerIndex][towers[towerIndex].length - 1] : null;
     
-    if (topDiskOnTargetTower === null || selectedDisk.size < topDiskOnTargetTower) {
-      // Valid move: Place disk
-      // 1. Remove from original tower
+    if (towerIndex !== selectedDisk.originalTowerIndex && (topDiskOnTargetTower === null || selectedDisk.size < topDiskOnTargetTower)) {
+      // Valid move to a DIFFERENT tower:
+      // 1. Store current state for undo
+      moveHistory.push({
+        towersState: JSON.parse(JSON.stringify(towers)), // Deep copy
+        moveCountBefore: moveCount,
+        isGameWonBefore: isGameWon, // Store previous win state
+        showGhostStackBefore: showGhostStack // Store ghost stack state
+      });
+      undoButton.disabled = false; // Enable undo button
+
+      // 2. Remove from original tower
       const poppedDisk = towers[selectedDisk.originalTowerIndex].pop();
-      // 2. Add to new tower
+      // 3. Add to new tower
       towers[towerIndex].push(poppedDisk);
       
       moveCount++;
-      if (moveCount === 1 && showGhostStack) { // First successful move
+      if (moveCount === 1 && showGhostStack) { 
         showGhostStack = false;
-        // No need to re-render immediately, next render will omit ghost stack
       }
       movesTakenDisplay.textContent = moveCount;
       selectedDisk = null;
-      checkWinCondition();
-      renderGame(); // This render will not show ghost if it was just turned off
+      checkWinCondition(); // This might set isGameWon
+      renderGame();
+    } else if (towerIndex === selectedDisk.originalTowerIndex) {
+        // Clicked the same tower to deselect
+        selectedDisk = null; 
+        renderGame(); 
     } else {
-      // Invalid move
+      // Invalid move (larger on smaller on a different tower)
       showWarning("Invalid Move: Cannot place larger disk on smaller one.");
       // Find the SVG element for the selected disk to shake it
       const diskElements = Array.from(hanoiSvg.querySelectorAll('.hanoi-disk'));
@@ -250,12 +274,6 @@ function handleTowerClick(towerIndex) {
           diskToShake.classList.remove('invalid-move-shake');
         }, { once: true });
       }
-
-      if (towerIndex === selectedDisk.originalTowerIndex) { // Clicked same tower
-          selectedDisk = null; 
-          renderGame(); 
-      }
-      // Do not deselect if it's an invalid placement on a *different* tower
     }
   }
 }
@@ -269,6 +287,25 @@ function checkWinCondition() {
   }
 }
 
+function undoMove() {
+  if (moveHistory.length > 0) {
+    const lastMove = moveHistory.pop();
+    towers = lastMove.towersState;
+    moveCount = lastMove.moveCountBefore;
+    isGameWon = lastMove.isGameWonBefore; // Restore previous win state
+    showGhostStack = lastMove.showGhostStackBefore; // Restore ghost stack state
+    
+    selectedDisk = null; // Always deselect any held disk on undo
+    undoCount++;
+
+    movesTakenDisplay.textContent = moveCount;
+    undoCountDisplay.textContent = undoCount;
+    undoButton.disabled = moveHistory.length === 0;
+    
+    renderGame();
+  }
+}
+
 // --- Event Listeners ---
 numDisksSlider.addEventListener('input', (event) => {
   const newNumDisks = parseInt(event.target.value);
@@ -276,18 +313,39 @@ numDisksSlider.addEventListener('input', (event) => {
 });
 
 resetButton.addEventListener('click', () => {
-  initGame(numDisks); // Reset with current number of disks
+  if (confirm("Are you sure you want to reset the game?")) {
+    initGame(numDisks); // Reset with current number of disks
+  }
 });
 
+undoButton.addEventListener('click', undoMove); // Add listener for new button
+
 hanoiSvg.addEventListener('click', (event) => {
-  let targetElement = event.target;
-  // Allow clicking on tower base or peg itself, or a disk to select its tower
-  while(targetElement && targetElement !== hanoiSvg) {
-      if (targetElement.dataset.towerIndex !== undefined) {
-          handleTowerClick(parseInt(targetElement.dataset.towerIndex));
-          return;
+  let interactiveTarget = null;
+  let currentElement = event.target;
+
+  // Traverse up to find if a tower (via data-tower-index on disk or click-target for peg area) was clicked
+  while(currentElement && currentElement !== hanoiSvg) {
+      if (currentElement.dataset.towerIndex !== undefined) {
+          interactiveTarget = currentElement; // This could be a disk or a tower click-target rect
+          break;
       }
-      targetElement = targetElement.parentElement;
+      currentElement = currentElement.parentElement;
+  }
+
+  if (interactiveTarget) {
+    // A disk or tower click target was found and it has a tower index
+    handleTowerClick(parseInt(interactiveTarget.dataset.towerIndex));
+  } else if (selectedDisk !== null) {
+    // No tower/disk target was clicked. This means click was on SVG background or another non-interactive SVG part.
+    // We explicitly allow deselecting by clicking background or the main base.
+    const baseElement = ids('hanoiGameBase'); // Get base by its new ID
+
+    if (event.target === hanoiSvg || (baseElement && event.target === baseElement)) {
+      selectedDisk = null;
+      renderGame(); // Redraw to remove 'selected' class and visual cue.
+    }
+    // If it was another non-interactive SVG element (e.g. a peg itself if pointer-events were not none), do nothing.
   }
 });
 
