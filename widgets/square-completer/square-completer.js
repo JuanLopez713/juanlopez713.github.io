@@ -8,7 +8,7 @@ import { fmt, ids, setupEventListeners } from '../shared/transformations.js';
 // ----- State (defaults) -----
 const DEFAULTS = {
   a: 1,    // coefficient of x² (fixed)
-  b: 4,    // coefficient of x
+  b: 6,    // coefficient of x
   c: -5    // constant term
 };
 
@@ -20,16 +20,41 @@ let a = DEFAULTS.a,
 const canvas = document.getElementById("geometricCanvas");
 const ctx = canvas.getContext("2d");
 
-// Set canvas size to match container
-function resizeCanvas() {
-  const container = canvas.parentElement;
-  canvas.width = container.clientWidth;
-  canvas.height = container.clientHeight;
+function initializeCanvasAndDraw() {
+    const container = canvas.parentElement;
+    if (container) {
+        canvas.width = container.clientWidth; 
+        const computedStyle = getComputedStyle(canvas);
+        canvas.height = parseInt(computedStyle.height, 10);
+
+        if (canvas.width > 0 && canvas.height > 0) {
+            update(); 
+        } else {
+            // If dimensions are not ready, try again shortly. This is a simple fallback.
+            setTimeout(initializeCanvasAndDraw, 50); 
+            return; // Don't proceed with potentially bad dimensions for first draw
+        }
+    }
+     if (ids("totalStepsDisplay")) {
+        ids("totalStepsDisplay").textContent = STEPS.length;
+    }
 }
 
-// Initial resize
-resizeCanvas();
-window.addEventListener('resize', resizeCanvas);
+function resizeCanvas() {
+  const container = canvas.parentElement;
+  if (container) {
+    const newWidth = container.clientWidth;
+    const newHeight = parseInt(getComputedStyle(canvas).height, 10);
+
+    if (newWidth > 0 && newHeight > 0) {
+      if (canvas.width !== newWidth || canvas.height !== newHeight) {
+        canvas.width = newWidth;
+        canvas.height = newHeight;
+        update(); 
+      }
+    }
+  }
+}
 
 // ----- Step management -----
 const STEPS = [
@@ -138,23 +163,32 @@ function drawMoveConstant(ctx, a, b, c) {
   ctx.fillStyle = "#fff";
   ctx.textAlign = "center";
   ctx.fillText("x²", currentX + squareSize / 2, effectiveCenterY);
+  
   ctx.fillStyle = "#000";
-  ctx.textAlign = "right";
-  ctx.fillText("x", currentX - MARGIN, effectiveCenterY);
+  // Left side label for red square
+  ctx.textAlign = "right"; 
+  ctx.textBaseline = "middle";
+  ctx.fillText("x", currentX - MARGIN, effectiveCenterY); 
+  // Top side label for red square
   ctx.textAlign = "center";
   ctx.textBaseline = "bottom";
-  ctx.fillText("x", currentX + squareSize / 2, squareTop - MARGIN);
-  ctx.textBaseline = "middle";
-
+  ctx.fillText("x", currentX + squareSize / 2, squareTop - MARGIN); 
+  
   // ----- yellow bx rectangle -----
   const yellowLeft = currentX + squareSize;
   ctx.fillStyle = "#F0B800";
   ctx.fillRect(yellowLeft, squareTop, rectWidth, scale);
   ctx.fillStyle = "#000";
   ctx.textAlign = "center";
-  ctx.fillText(`${fmt(b)}x`, yellowLeft + rectWidth / 2, effectiveCenterY);
-  ctx.fillText(`${fmt(b)}`,  yellowLeft + rectWidth / 2, squareTop - MARGIN);
-  labelXBelow(ctx, yellowLeft + rectWidth / 2, squareTop + scale, MARGIN);
+  ctx.textBaseline = "middle"; // For area label
+  ctx.fillText(`${fmt(b)}x`, yellowLeft + rectWidth / 2, effectiveCenterY); 
+  // Top side label for yellow rectangle
+  ctx.textAlign = "center";
+  ctx.textBaseline = "bottom";
+  ctx.fillText(`${fmt(b)}`,  yellowLeft + rectWidth / 2, squareTop - MARGIN); 
+
+  // Reset baseline for other text like equals sign if necessary
+  ctx.textBaseline = "middle"; 
 
   // ----- equal sign -----
   ctx.fillStyle = "#000";
@@ -167,6 +201,7 @@ function drawMoveConstant(ctx, a, b, c) {
   ctx.fillRect(greenLeft, squareTop, constSize, constSize);
   ctx.fillStyle = "#000";
   ctx.textAlign = "center";
+  ctx.textBaseline = "middle"; // For area label
   ctx.fillText(`${fmt(-c)}`, greenLeft + constSize / 2, squareTop + constSize/2 );
 }
 
@@ -213,20 +248,25 @@ function drawSplitRectangles(ctx, a, b, c) {
   ctx.fillRect(rightRectLeft, squareTop, splitRectWidth, scale);
   ctx.fillStyle = "#000";
   ctx.textAlign = "center";
+  ctx.textBaseline = "middle"; // for area label
   ctx.fillText(`${fmt(b/2)}x`, rightRectLeft + splitRectWidth/2, topRowCenterY);
+  ctx.textAlign = "center";
+  ctx.textBaseline = "bottom"; // for top side label
   ctx.fillText(`${fmt(b/2)}`,  rightRectLeft + splitRectWidth/2, squareTop - MARGIN);
-  labelXBelow(ctx, rightRectLeft + splitRectWidth / 2, squareTop + scale, MARGIN);
+  ctx.textBaseline = "middle"; // Reset
 
   // bottom yellow rectangle
   ctx.fillStyle = "#F0B800";
   ctx.fillRect(currentX, squareTop + squareSize, squareSize, splitRectWidth);
   ctx.fillStyle = "#000";
   ctx.textAlign = "center";
-  ctx.fillText(`${fmt(b/2)}x`, currentX + squareSize/2, squareTop + squareSize + splitRectWidth/2);
-  ctx.fillText("x", currentX + squareSize/2, squareTop + squareSize + splitRectWidth + MARGIN);
-  ctx.textAlign = "right";
-  ctx.fillText(`${fmt(b/2)}`, currentX - MARGIN, squareTop + squareSize + splitRectWidth/2);
-  ctx.textAlign = "center";
+  ctx.textBaseline = "middle"; // for area label
+  ctx.fillText(`${fmt(b/2)}x`, currentX + squareSize/2, squareTop + squareSize + splitRectWidth/2); 
+  ctx.textAlign = "right"; 
+  ctx.textBaseline = "middle"; // for left side label
+  ctx.fillText(`${fmt(b/2)}`,  currentX - MARGIN, squareTop + squareSize + splitRectWidth/2); 
+  ctx.textAlign = "center"; 
+  ctx.textBaseline = "middle"; // Reset
 
   // equal sign
   ctx.fillStyle = "#000";
@@ -239,7 +279,8 @@ function drawSplitRectangles(ctx, a, b, c) {
   ctx.fillRect(greenLeft, squareTop, constSize, constSize);
   ctx.fillStyle = "#000";
   ctx.textAlign = "center";
-  ctx.fillText(`${fmt(-c)}`, greenLeft + constSize / 2, squareTop + constSize/2);
+  ctx.textBaseline = "middle"; // for area label
+  ctx.fillText(`${fmt(-c)}`, greenLeft + constSize / 2, squareTop + constSize/2); 
 }
 
 function drawCompletingSquare(ctx, a, b, c) {
@@ -251,26 +292,27 @@ function drawCompletingSquare(ctx, a, b, c) {
 
   const squareSize = scale;
   const splitRectWidth  = scale * Math.abs(b / 2);
-  const completingHeight = splitRectWidth;
+  const completingSquareSide = splitRectWidth; // Side length of the small completing square
   const rightConstSize = scale * Math.sqrt(Math.abs(-c + (b/2)*(b/2)));
   
-  const groupHeight = squareSize + completingHeight;
-  const startY    = (height - groupHeight) / 2;
+  const groupHeight = squareSize + completingSquareSide; 
+  const startY    = (height - groupHeight) / 2;  
   const squareTop = startY;
-  const topRowCenterY = startY + squareSize / 2;
+  const topRowCenterY = startY + squareSize / 2; 
 
-  const leftBlockWidth = squareSize + splitRectWidth;
+  const leftBlockWidth = squareSize + splitRectWidth; 
   const groupWidth = leftBlockWidth + SPACING + rightConstSize;
   const currentX   = (width - groupWidth) / 2;
   
   ctx.font = "bold 16px 'Source Sans Pro'";
+  // Default text alignment for this function
+  ctx.textAlign = "center";
   ctx.textBaseline = "middle";
 
   // red square
   ctx.fillStyle = "#E60000";
   ctx.fillRect(currentX, squareTop, squareSize, squareSize);
   ctx.fillStyle = "#fff";
-  ctx.textAlign = "center";
   ctx.fillText("x²", currentX + squareSize/2, topRowCenterY);
   ctx.fillStyle = "#000";
   ctx.textAlign = "right";
@@ -278,55 +320,45 @@ function drawCompletingSquare(ctx, a, b, c) {
   ctx.textAlign = "center";
   ctx.textBaseline = "bottom";
   ctx.fillText("x", currentX + squareSize/2, squareTop - MARGIN);
-  ctx.textBaseline = "middle";
+  ctx.textBaseline = "middle"; // Reset
 
   // right yellow rectangle
   const rightRectLeft = currentX + squareSize;
   ctx.fillStyle = "#F0B800";
   ctx.fillRect(rightRectLeft, squareTop, splitRectWidth, scale);
   ctx.fillStyle = "#000";
-  ctx.textAlign = "center";
-  ctx.fillText(`${fmt(b/2)}x`, rightRectLeft + splitRectWidth/2, topRowCenterY);
-  ctx.fillText(`${fmt(b/2)}`,  rightRectLeft + splitRectWidth/2, squareTop - MARGIN);
-  labelXBelow(ctx, rightRectLeft + splitRectWidth/2, squareTop + scale, MARGIN);
+  ctx.fillText(`${fmt(b/2)}x`, rightRectLeft + splitRectWidth/2, topRowCenterY); // Area label, centered
+  ctx.textBaseline = "bottom";
+  ctx.fillText(`${fmt(b/2)}`,  rightRectLeft + splitRectWidth/2, squareTop - MARGIN); // Top side label
+  ctx.textBaseline = "middle"; // Reset
 
   // bottom yellow rectangle
   ctx.fillStyle = "#F0B800";
   ctx.fillRect(currentX, squareTop + squareSize, squareSize, splitRectWidth);
   ctx.fillStyle = "#000";
-  ctx.textAlign = "center";
-  ctx.fillText(`${fmt(b/2)}x`, currentX + squareSize/2, squareTop + squareSize + splitRectWidth/2);
-  ctx.fillText("x", currentX + squareSize/2, squareTop + squareSize + splitRectWidth + MARGIN);
+  ctx.fillText(`${fmt(b/2)}x`, currentX + squareSize/2, squareTop + squareSize + splitRectWidth/2); // Area label, centered
   ctx.textAlign = "right";
-  ctx.fillText(`${fmt(b/2)}`, currentX - MARGIN, squareTop + squareSize + splitRectWidth/2);
-  ctx.textAlign = "center";
+  ctx.fillText(`${fmt(b/2)}`, currentX - MARGIN, squareTop + squareSize + splitRectWidth/2); // Left side label
+  ctx.textAlign = "center"; // Reset
 
   // completing small square (semi-transparent yellow)
-  ctx.fillStyle = "rgba(240,184,0,0.3)";
-  ctx.fillRect(rightRectLeft, squareTop + squareSize, splitRectWidth, completingHeight);
-  ctx.fillStyle = "#000";
-  ctx.textAlign = "center";
-  ctx.fillText(`${fmt((b/2)*(b/2))}`, rightRectLeft + splitRectWidth / 2, squareTop + squareSize + completingHeight / 2);
-  ctx.textAlign = "center";
-  ctx.textBaseline = "bottom";
-  ctx.fillText(`${fmt(b/2)}`, rightRectLeft + splitRectWidth / 2, squareTop + squareSize + completingHeight + MARGIN);
-  ctx.textBaseline = "middle";
-  ctx.textAlign = "left";
-  ctx.fillText(`${fmt(b/2)}`, rightRectLeft + splitRectWidth + MARGIN/2, squareTop + squareSize + completingHeight / 2);
-  ctx.textAlign = "center";
+  const completingSquareTop = squareTop + squareSize;
+  const completingSquareLeft = rightRectLeft;
+  ctx.fillStyle = "rgba(240,184,0,0.3)"; 
+  ctx.fillRect(completingSquareLeft, completingSquareTop, completingSquareSide, completingSquareSide);
+  ctx.fillStyle = "#000"; 
+  ctx.fillText(`${fmt((b/2)*(b/2))}`, completingSquareLeft + completingSquareSide / 2, completingSquareTop + completingSquareSide / 2); // Area label, centered
 
   // equal sign
   ctx.fillStyle = "#000";
-  ctx.textAlign = "center";
   ctx.fillText("=", rightRectLeft + splitRectWidth + SPACING / 2, topRowCenterY);
 
   // green square (constant term on right)
   const greenLeft = rightRectLeft + splitRectWidth + SPACING;
   ctx.fillStyle = "#00B800";
-  ctx.fillRect(greenLeft, squareTop, rightConstSize, rightConstSize);
+  ctx.fillRect(greenLeft, squareTop, rightConstSize, rightConstSize); 
   ctx.fillStyle = "#000";
-  ctx.textAlign = "center";
-  ctx.fillText(`${fmt(-c + (b/2)*(b/2))}`, greenLeft + rightConstSize / 2, squareTop + rightConstSize/2);
+  ctx.fillText(`${fmt(-c + (b/2)*(b/2))}`, greenLeft + rightConstSize / 2, squareTop + rightConstSize/2); // Area label, centered
 }
 
 function drawCompletedSquare(ctx, a, b, c) {
@@ -386,28 +418,31 @@ function labelXBelow(ctx, xCenter, yBottom, margin) {
 
 // ----- Update routine -----
 function update() {
-  // a is fixed at 1
   b = parseFloat(ids("bRange").value);
   c = parseFloat(ids("cRange").value);
 
-  // Update readouts
   ids("bVal").textContent = fmt(b);
   ids("cVal").textContent = fmt(c);
 
-  // Update step info
-  const step = STEPS[currentStep];
+  const currentStepObj = STEPS[currentStep];
   ids("currentStepDisplay").textContent = currentStep + 1;
   ids("totalStepsDisplay").textContent = STEPS.length;
-  ids("stepDescription").textContent = step.description;
-  ids("currentExpression").textContent = step.expression(a, b, c);
+  ids("stepDescription").textContent = currentStepObj.description;
 
-  // Update buttons
+  // Accumulate equations
+  let accumulatedExpressions = "";
+  for (let i = 0; i <= currentStep; i++) {
+    const step = STEPS[i];
+    // Wrap each equation in a paragraph for distinct lines and styling if needed
+    accumulatedExpressions += `<p class="equation-line">${step.expression(a, b, c)}</p>`;
+  }
+  ids("currentExpression").innerHTML = accumulatedExpressions; // Use innerHTML for <p> tags
+
   ids("prevStep").disabled = currentStep === 0;
   ids("nextStep").disabled = currentStep === STEPS.length - 1;
 
-  // Clear canvas and draw current step
   ctx.clearRect(0, 0, canvas.width, canvas.height);
-  step.draw(ctx, a, b, c);
+  currentStepObj.draw(ctx, a, b, c);
 }
 
 // ----- Event listeners -----
@@ -427,14 +462,14 @@ ids("nextStep").addEventListener("click", () => {
   }
 });
 
-// Set initial values
+// Set initial slider values (this is fine here)
 ids("bRange").value = DEFAULTS.b;
 ids("cRange").value = DEFAULTS.c;
 
-// Initial update
-update();
-
-// Set total steps display initially as well, though update() will also do it.
-if (ids("totalStepsDisplay")) {
-    ids("totalStepsDisplay").textContent = STEPS.length;
-} 
+// Initial setup
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', initializeCanvasAndDraw);
+} else {
+  initializeCanvasAndDraw();
+}
+window.addEventListener('resize', resizeCanvas); 

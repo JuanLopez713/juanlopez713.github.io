@@ -22,6 +22,12 @@
       font-style: italic;
       font-size: 1.2rem;
       margin: 0.5rem 0;
+      text-align: center; /* Center the equations */
+    }
+    .equation-line {
+      margin: 0.2em 0; /* Space between equation lines */
+      padding: 0;
+      /* text-align: center; will be inherited */
     }
     
     .step-controls {
@@ -50,31 +56,40 @@
     /* Their container, .sidebar, will get fixed width from shared styles */
 
     @media (max-width: 768px) {
-      /* .sidebar itself is order: 1 (from shared styles) */
-      /* .chartarea is order: 2 (from shared styles) */
+      .controls-container .chartarea { /* Specificity to override shared if needed */
+        order: 1; 
+      }
+      .controls-container .sidebar {
+        order: 2;
+        /* Shared styles already make sidebar width 100% and align-items center */
+      }
 
-      /* Update selectors from .step-info to .info for items inside .sidebar on mobile */
-      .sidebar .info, /* Targeting .info specifically within .sidebar */
-      .sidebar .controls,
-      .sidebar .step-controls {
+      /* Order for items now INSIDE .sidebar on mobile */
+      .sidebar .step-controls { /* Buttons */
+        order: 1; /* Buttons first within sidebar */
+        width: 100%;
+        max-width: 500px;
+        margin-left: auto;
+        margin-right: auto;
+        justify-content: center;
+      }
+      .sidebar .info { /* Step Info */
+        order: 2; /* Step Info second within sidebar */
         width: 100%; 
         max-width: 500px; 
         margin-left: auto; 
         margin-right: auto;
-      }
-
-      .sidebar .info { /* Targeting .info specifically within .sidebar */
-        order: 1; /* Order within sidebar */
-        padding-top: 0.25rem;    /* Keep compact padding for this box on mobile */
-        padding-bottom: 0.25rem; 
-        padding-left: 0.75rem;  /* Standard horizontal */
+        padding-top: 0.25rem;
+        padding-bottom: 0.25rem;
+        padding-left: 0.75rem;
         padding-right: 0.75rem;
       }
-      .sidebar .controls { 
-        order: 2; /* Order within sidebar */
-      }
-      .sidebar .step-controls {
-        order: 3; /* Order within sidebar */
+      .sidebar .controls { /* Sliders */
+        order: 3; /* Sliders last within sidebar */
+        width: 100%;
+        max-width: 500px;
+        margin-left: auto;
+        margin-right: auto;
       }
     }
   </style>
@@ -85,7 +100,14 @@
     <a href="../../index.html" class="back-link">← Back to Home</a>
     <h1>Geometric Square Completer</h1>
     <div class="controls-container">
+      <main class="chartarea">
+        <canvas id="geometricCanvas"></canvas>
+      </main>
       <aside class="sidebar">
+        <div class="step-controls">
+          <button id="prevStep" class="step-button" disabled>Previous Step</button>
+          <button id="nextStep" class="step-button">Next Step</button>
+        </div>
         <div class="info" id="stepInfoBox">
           <h3>Step <span id="currentStepDisplay">1</span> of <span id="totalStepsDisplay">5</span></h3>
           <p id="stepDescription">Start with the quadratic expression in standard form.</p>
@@ -104,14 +126,7 @@
             <input id="cRange" type="range" min="-10" max="10" step="1" value="3" />
           </div>
         </div>
-        <div class="step-controls">
-          <button id="prevStep" class="step-button" disabled>Previous Step</button>
-          <button id="nextStep" class="step-button">Next Step</button>
-        </div>
       </aside>
-      <main class="chartarea">
-        <canvas id="geometricCanvas"></canvas>
-      </main>
     </div>
   </div>
 
