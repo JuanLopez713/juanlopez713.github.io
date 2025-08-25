@@ -6,7 +6,6 @@ import { ids, fmt } from '../shared/shared-utils.js'; // Changed import
 const numDisksSlider = ids('numDisksSlider');
 const numDisksDisplay = ids('numDisksDisplay');
 const movesTakenDisplay = ids('movesTakenDisplay');
-const optimalMovesDisplay = ids('optimalMovesDisplay');
 const resetButton = ids('resetButton');
 const undoButton = ids('undoButton'); // New button
 const undoCountDisplay = ids('undoCountDisplay'); // New display
@@ -63,7 +62,6 @@ function initGame(n) {
 
   numDisksDisplay.textContent = numDisks;
   movesTakenDisplay.textContent = moveCount;
-  optimalMovesDisplay.textContent = calculateOptimalMoves(numDisks);
   undoCountDisplay.textContent = undoCount; // Update display
   undoButton.disabled = true; // Disable undo at start
   
