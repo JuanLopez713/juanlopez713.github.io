@@ -277,8 +277,8 @@ function handleTowerClick(towerIndex) {
 }
 
 function checkWinCondition() {
-  // Win if all disks are on the last tower or the middle tower (and not on the first)
-  if (towers[0].length === 0 && (towers[1].length === numDisks || towers[2].length === numDisks)) {
+  // Win only if all disks are on the last (rightmost) tower
+  if (towers[NUM_TOWERS - 1].length === numDisks) {
     isGameWon = true;
     console.log("You won!");
     // Render game will show win message
@@ -312,7 +312,8 @@ numDisksSlider.addEventListener('input', (event) => {
 
 resetButton.addEventListener('click', () => {
   if (confirm("Are you sure you want to reset the game?")) {
-    initGame(numDisks); // Reset with current number of disks
+    const sliderVal = parseInt(numDisksSlider.value);
+    initGame(Number.isFinite(sliderVal) ? sliderVal : numDisks); // Use slider value if valid
   }
 });
 
