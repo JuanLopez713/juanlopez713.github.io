@@ -27,7 +27,7 @@ const CLICK_TARGET_WIDTH_PADDING = 30; // Extra width on each side of the peg fo
 const GOAL_TOWER_COLOR = '#28a745'; // Green for goal, for example
 
 // --- Game State ---
-let numDisks = 3;
+let numDisks = 1;
 let towers = []; // Array of arrays, e.g., [[3,2,1], [], []] (disk sizes)
 let moveCount = 0;
 let selectedDisk = null; // { size: number, originalTowerIndex: number }
@@ -48,9 +48,15 @@ function calculateOptimalMoves(n) {
 }
 
 function initGame(n) {
-  numDisks = n;
+  // Clamp to [1, 8]
+  const clamped = Math.min(8, Math.max(1, parseInt(n)));
+  numDisks = Number.isFinite(clamped) ? clamped : 1;
+  // Ensure the slider reflects the current state
+  if (numDisksSlider && numDisksSlider.value !== String(numDisks)) {
+    numDisksSlider.value = String(numDisks);
+  }
   towers = Array.from({ length: NUM_TOWERS }, () => []);
-  for (let i = n; i >= 1; i--) {
+  for (let i = numDisks; i >= 1; i--) {
     towers[0].push(i); // Push disk size (1 is smallest)
   }
   moveCount = 0;
@@ -200,7 +206,24 @@ function renderGame() {
     winText.setAttribute('text-anchor', 'middle');
     winText.setAttribute('font-size', '24');
     winText.setAttribute('fill', 'green');
-    winText.textContent = `You Won in ${moveCount} moves! Optimal: ${calculateOptimalMoves(numDisks)}`;
+
+    const optimalMoves = calculateOptimalMoves(numDisks);
+    let message = '';
+    if (numDisks <= 3) {
+      if (moveCount === optimalMoves) {
+        message = `You won in ${moveCount} moves, the optimal amount of moves!`;
+      } else {
+        message = `You won in ${moveCount} moves! Can you beat this score?`;
+      }
+    } else {
+      if (moveCount === optimalMoves) {
+        message = `Congratulations! You won in ${moveCount} moves—the optimal number of moves!`;
+      } else {
+        message = `You won in ${moveCount} moves! Optimal: ${optimalMoves}`;
+      }
+    }
+
+    winText.textContent = message;
     hanoiSvg.appendChild(winText);
   }
 }
