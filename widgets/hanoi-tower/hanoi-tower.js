@@ -72,6 +72,12 @@ function initGame(n) {
   undoCountDisplay.textContent = undoCount; // Update display
   undoButton.disabled = true; // Disable undo at start
   
+  // Ensure win message is hidden on (re)initialization
+  if (hanoiWin) {
+    hanoiWin.style.display = 'none';
+    hanoiWin.textContent = '';
+  }
+  
   renderGame();
 }
 
@@ -220,6 +226,12 @@ function renderGame() {
     if (hanoiWin) {
       hanoiWin.textContent = message;
       hanoiWin.style.display = 'block';
+    }
+  } else {
+    // Hide win message whenever the game is not in a won state
+    if (hanoiWin) {
+      hanoiWin.style.display = 'none';
+      hanoiWin.textContent = '';
     }
   }
 }
