@@ -11,6 +11,7 @@ const undoButton = ids('undoButton'); // New button
 const undoCountDisplay = ids('undoCountDisplay'); // New display
 const hanoiSvg = ids('hanoiSvg');
 const hanoiWarning = ids('hanoiWarning'); // Get the warning element
+const hanoiWin = ids('hanoiWin');
 
 // --- Game Constants & Configuration ---
 const NUM_TOWERS = 3;
@@ -200,16 +201,10 @@ function renderGame() {
   }
   
   if (isGameWon) {
-    const winText = document.createElementNS("http://www.w3.org/2000/svg", "text");
-    winText.setAttribute('x', SVG_WIDTH / 2);
-    winText.setAttribute('y', SVG_HEIGHT / 4);
-    winText.setAttribute('text-anchor', 'middle');
-    winText.setAttribute('font-size', '24');
-    winText.setAttribute('fill', 'green');
-
     const optimalMoves = calculateOptimalMoves(numDisks);
     let message = '';
-    if (numDisks <= 3) {
+    if (numDisks <= 4) {
+      // Up to 4 disks: do not reveal optimal unless they matched it; starting at 5, reveal even if not matched
       if (moveCount === optimalMoves) {
         message = `You won in ${moveCount} moves, the optimal amount of moves!`;
       } else {
@@ -222,9 +217,10 @@ function renderGame() {
         message = `You won in ${moveCount} moves! Optimal: ${optimalMoves}`;
       }
     }
-
-    winText.textContent = message;
-    hanoiSvg.appendChild(winText);
+    if (hanoiWin) {
+      hanoiWin.textContent = message;
+      hanoiWin.style.display = 'block';
+    }
   }
 }
 
@@ -300,8 +296,9 @@ function handleTowerClick(towerIndex) {
 }
 
 function checkWinCondition() {
-  // Win only if all disks are on the last (rightmost) tower
-  if (towers[NUM_TOWERS - 1].length === numDisks) {
+  // Win if all disks are on any single tower (not the starting one only check)
+  const won = towers.some((tower, idx) => tower.length === numDisks && idx !== 0);
+  if (won) {
     isGameWon = true;
     console.log("You won!");
     // Render game will show win message
@@ -337,6 +334,7 @@ resetButton.addEventListener('click', () => {
   if (confirm("Are you sure you want to reset the game?")) {
     const sliderVal = parseInt(numDisksSlider.value);
     initGame(Number.isFinite(sliderVal) ? sliderVal : numDisks); // Use slider value if valid
+    if (hanoiWin) { hanoiWin.style.display = 'none'; hanoiWin.textContent = ''; }
   }
 });
 

@@ -92,6 +92,19 @@
         color: white;
     }
 
+    .hanoi-win {
+      display: none;
+      max-width: 600px;
+      margin: 0.75rem auto 0;
+      padding: 0.75rem 1rem;
+      background: #28a745;
+      color: #fff;
+      border: 1px solid #155724;
+      border-radius: 8px;
+      text-align: center;
+      font-weight: 600;
+    }
+
     .hanoi-disk.invalid-move-shake {
       animation: shake 0.5s cubic-bezier(.36,.07,.19,.97) both;
       transform: translate3d(0, 0, 0);
@@ -183,6 +196,7 @@
       <main class="chartarea hanoi-game-area">
         <div id="hanoiWarning">Invalid Move!</div>
         <svg id="hanoiSvg" viewbox="0 0 600 300"></svg>
+        <div id="hanoiWin" class="hanoi-win"></div>
       </main>
     </div>
   </div>
