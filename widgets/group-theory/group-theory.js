@@ -12,6 +12,14 @@ const labelC = ids('labelC');
 const labelD = ids('labelD');
 const currentOpEl = ids('currentOp');
 
+// Letter -> color mapping so colors follow letters even when labels are remapped
+const LETTER_COLORS = {
+  'A': '#E60000', // red
+  'B': '#007bff', // blue
+  'C': '#00B800', // green
+  'D': '#F0B800'  // yellow
+};
+
 const btnIdentity = ids('btnIdentity');
 const btnRotate = ids('btnRotate');
 const btnFlipV = ids('btnFlipV');
@@ -47,28 +55,26 @@ let currentOp = 'e';
 let currentAngle = 0; // degrees
 let isAnimating = false;
 let pendingOps = [];
+let currentSx = 1;
+let currentSy = 1;
 
 function getScaleForOp(op){
-  // Vertical flip: flip top-bottom (scaleY)
+  // Canonical scales for each element (using 0° rotation):
+  // e: (1, 1), r: (-1, -1), v: (1, -1), h: (-1, 1)
+  if (op === 'e') return [1, 1];
+  if (op === 'r') return [-1, -1];
   if (op === 'v') return [1, -1];
-  // Horizontal flip: flip left-right (scaleX)
   if (op === 'h') return [-1, 1];
-  return [1, 1]; // e or r
+  return [1, 1];
 }
 
 // Update corner label texts according to the current symmetry element
 function updateLabelsForOp(op) {
-  // Base positions order: A (TL), B (TR), C (BR), D (BL)
-  let order;
-  if (op === 'e') order = ['A','B','C','D'];
-  else if (op === 'r') order = ['C','D','A','B'];
-  else if (op === 'v') order = ['D','C','B','A']; // vertical: top-bottom flip
-  else if (op === 'h') order = ['B','A','D','C']; // horizontal: left-right flip
-  else order = ['A','B','C','D'];
-  labelA.textContent = order[0];
-  labelB.textContent = order[1];
-  labelC.textContent = order[2];
-  labelD.textContent = order[3];
+  // Keep letters fixed; positions change via transforms only.
+  labelA.textContent = 'A'; labelA.style.fill = LETTER_COLORS['A'];
+  labelB.textContent = 'B'; labelB.style.fill = LETTER_COLORS['B'];
+  labelC.textContent = 'C'; labelC.style.fill = LETTER_COLORS['C'];
+  labelD.textContent = 'D'; labelD.style.fill = LETTER_COLORS['D'];
 }
 
 function setTransforms(angleDeg, sx, sy){
@@ -81,9 +87,10 @@ function setTransforms(angleDeg, sx, sy){
 function setOrientation(op){
   currentOp = op;
   currentOpEl.textContent = op;
-  currentAngle = (op === 'r') ? 180 : 0;
   const [sx, sy] = getScaleForOp(op);
-  setTransforms(currentAngle, sx, sy);
+  currentSx = sx; currentSy = sy;
+  currentAngle = 0;
+  setTransforms(0, sx, sy);
   updateLabelsForOp(op);
 }
 
@@ -95,11 +102,11 @@ function animateToState(targetOp, requestedOp) {
   if (isAnimating) return;
   isAnimating = true;
   
-  const startAngle = currentAngle;
+  const startAngle = 0;
   const isRotationOp = requestedOp === 'r';
   
-  const [startSx, startSy] = getScaleForOp(currentOp);
-  const [targetSx, targetSy] = getScaleForOp(targetOp);
+  const startSx = currentSx;
+  const startSy = currentSy;
   
   // Compute animation end scale for the requested op (apply flip axis to current scale)
   let animEndSx = startSx, animEndSy = startSy;
@@ -138,15 +145,16 @@ function animateToState(targetOp, requestedOp) {
       currentOp = targetOp;
       currentOpEl.textContent = targetOp;
       if (isRotationOp) {
-        // Absorb the 180° into the scale (since R(π)=-I):
-        // rotate(π) · scale(sx,sy) ≡ scale(-sx,-sy) with zero rotation.
-        const canonSx = -startSx;
-        const canonSy = -startSy;
+        // Absorb the 180° into the scale (since R(π)=-I): toggle both signs
+        currentSx = -startSx;
+        currentSy = -startSy;
         currentAngle = 0;
-        setTransforms(currentAngle, canonSx, canonSy);
+        setTransforms(0, currentSx, currentSy);
       } else {
-        currentAngle = startAngle; // keep angle unchanged after a flip
-        setTransforms(currentAngle, animEndSx, animEndSy);
+        currentAngle = 0;
+        currentSx = animEndSx;
+        currentSy = animEndSy;
+        setTransforms(0, currentSx, currentSy);
       }
       updateLabelsForOp(currentOp);
       isAnimating = false;
