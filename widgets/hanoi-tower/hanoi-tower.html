@@ -116,6 +116,75 @@
       40%, 60% { transform: translate3d(4px, 0, 0); }
     }
 
+    /* Slider control group and styling for better affordance */
+    .slider-control-group {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      margin-top: 0.25rem;
+    }
+    .slider-control-group input[type="range"] {
+      flex: 1 1 auto;
+    }
+    .step-button {
+      min-width: 2.25rem;
+      padding-left: 0.5rem;
+      padding-right: 0.5rem;
+      font-weight: 700;
+    }
+    .slider-hint {
+      font-size: 0.85rem;
+      color: #666;
+      margin-top: 0.25rem;
+    }
+
+    /* Make the range slider look draggable (WebKit/Blink) */
+    input[type="range"] {
+      -webkit-appearance: none;
+      appearance: none;
+      height: 6px;
+      background: #ddd;
+      border-radius: 6px;
+      outline: none;
+    }
+    input[type="range"]:hover {
+      background: #ccc;
+    }
+    input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      background: #007bff;
+      border: 2px solid white;
+      box-shadow: 0 1px 2px rgba(0,0,0,0.3);
+      cursor: grab;
+    }
+    input[type="range"]:active::-webkit-slider-thumb {
+      cursor: grabbing;
+      background: #0062cc;
+    }
+    /* Firefox */
+    input[type="range"]::-moz-range-track {
+      height: 6px;
+      background: #ddd;
+      border-radius: 6px;
+    }
+    input[type="range"]::-moz-range-thumb {
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      background: #007bff;
+      border: 2px solid white;
+      box-shadow: 0 1px 2px rgba(0,0,0,0.3);
+      cursor: grab;
+    }
+    input[type="range"]:active::-moz-range-thumb {
+      cursor: grabbing;
+      background: #0062cc;
+    }
+
     #hanoiWarning {
       position: absolute;
       top: 10px;
@@ -175,7 +244,12 @@
         <div class="controls">
           <div class="control">
             <label for="numDisksSlider">Number of Disks: <span id="numDisksDisplay">1</span></label>
-            <input id="numDisksSlider" type="range" min="1" max="8" step="1" value="1" />
+            <div class="slider-control-group">
+              <button id="decreaseDisksButton" class="widget-action-button step-button" aria-label="Decrease number of disks" title="Decrease">−</button>
+              <input id="numDisksSlider" type="range" min="1" max="8" step="1" value="1" />
+              <button id="increaseDisksButton" class="widget-action-button step-button" aria-label="Increase number of disks" title="Increase">+</button>
+            </div>
+            <div class="slider-hint" id="numDisksHint">Drag the knob or use − / +</div>
           </div>
         </div>
 

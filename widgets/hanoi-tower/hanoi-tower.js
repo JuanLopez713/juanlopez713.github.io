@@ -4,6 +4,8 @@ import { ids, fmt } from '../shared/shared-utils.js'; // Changed import
 
 // --- DOM Elements ---
 const numDisksSlider = ids('numDisksSlider');
+const increaseDisksButton = ids('increaseDisksButton');
+const decreaseDisksButton = ids('decreaseDisksButton');
 const numDisksDisplay = ids('numDisksDisplay');
 const movesTakenDisplay = ids('movesTakenDisplay');
 const resetButton = ids('resetButton');
@@ -71,6 +73,7 @@ function initGame(n) {
   movesTakenDisplay.textContent = moveCount;
   undoCountDisplay.textContent = undoCount; // Update display
   undoButton.disabled = true; // Disable undo at start
+  updateStepButtonsState();
   
   // Ensure win message is hidden on (re)initialization
   if (hanoiWin) {
@@ -340,6 +343,7 @@ function undoMove() {
 numDisksSlider.addEventListener('input', (event) => {
   const newNumDisks = parseInt(event.target.value);
   initGame(newNumDisks);
+  updateStepButtonsState();
 });
 
 resetButton.addEventListener('click', () => {
@@ -351,6 +355,44 @@ resetButton.addEventListener('click', () => {
 });
 
 undoButton.addEventListener('click', undoMove); // Add listener for new button
+
+// Handle +/- step buttons
+function clampDisks(val) {
+  const min = parseInt(numDisksSlider.min);
+  const max = parseInt(numDisksSlider.max);
+  return Math.min(max, Math.max(min, val));
+}
+
+function updateStepButtonsState() {
+  if (!increaseDisksButton || !decreaseDisksButton) return;
+  const min = parseInt(numDisksSlider.min);
+  const max = parseInt(numDisksSlider.max);
+  const current = parseInt(numDisksSlider.value);
+  decreaseDisksButton.disabled = current <= min;
+  increaseDisksButton.disabled = current >= max;
+}
+
+if (increaseDisksButton) {
+  increaseDisksButton.addEventListener('click', () => {
+    const next = clampDisks(parseInt(numDisksSlider.value) + 1);
+    if (String(next) !== numDisksSlider.value) {
+      numDisksSlider.value = String(next);
+      initGame(next);
+      updateStepButtonsState();
+    }
+  });
+}
+
+if (decreaseDisksButton) {
+  decreaseDisksButton.addEventListener('click', () => {
+    const next = clampDisks(parseInt(numDisksSlider.value) - 1);
+    if (String(next) !== numDisksSlider.value) {
+      numDisksSlider.value = String(next);
+      initGame(next);
+      updateStepButtonsState();
+    }
+  });
+}
 
 hanoiSvg.addEventListener('click', (event) => {
   let interactiveTarget = null;
