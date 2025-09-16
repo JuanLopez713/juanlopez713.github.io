@@ -13,6 +13,11 @@ const btn180 = ids('btn180');
 const btn240 = ids('btn240');
 const btn300 = ids('btn300');
 const btnReset = ids('btnReset');
+const tableEl = ids('c6table');
+const btnCheck = ids('btnCheck');
+const btnClear = ids('btnClear');
+const btnShow = ids('btnShow');
+const checkMsg = ids('checkMsg');
 
 // --- Grid ---
 (function drawGrid(){
@@ -101,5 +106,87 @@ btnReset.addEventListener('click', resetRotation);
 // Initialize
 setRotation(0);
 updateReadout();
+
+// --- C6 rotation table ---
+const angles = [0,60,120,180,240,300];
+const labels = ['r₀','r₁','r₂','r₃','r₄','r₅'];
+
+function comp(a, b) {
+  // composition: apply row rotation then column rotation (CCW), modulo 360
+  const sum = (a + b) % 360;
+  return sum;
+}
+
+function buildTable() {
+  tableEl.innerHTML = '';
+  const thead = document.createElement('thead');
+  const trh = document.createElement('tr');
+  trh.appendChild(document.createElement('th'));
+  labels.forEach((lbl, i) => {
+    const th = document.createElement('th');
+    th.innerHTML = `${lbl}<br><small>${angles[i]}°</small>`;
+    trh.appendChild(th);
+  });
+  thead.appendChild(trh);
+
+  const tbody = document.createElement('tbody');
+  labels.forEach((rowLbl, ri) => {
+    const tr = document.createElement('tr');
+    const th = document.createElement('th');
+    th.innerHTML = `${rowLbl}<br><small>${angles[ri]}°</small>`;
+    tr.appendChild(th);
+    labels.forEach((colLbl, ci) => {
+      const td = document.createElement('td');
+      td.dataset.row = String(angles[ri]);
+      td.dataset.col = String(angles[ci]);
+      td.textContent = '·';
+      td.style.cursor = 'pointer';
+      td.addEventListener('click', () => {
+        const options = ['·', '0°', '60°', '120°', '180°','240°','300°'];
+        const cur = td.textContent;
+        const next = options[(options.indexOf(cur) + 1) % options.length] || '0°';
+        td.textContent = next;
+        td.classList.remove('ok','bad');
+      });
+      tr.appendChild(td);
+    });
+    tbody.appendChild(tr);
+  });
+
+  tableEl.appendChild(thead);
+  tableEl.appendChild(tbody);
+}
+
+function clearTable() {
+  tableEl.querySelectorAll('td').forEach(td => { td.textContent = '·'; td.classList.remove('ok','bad'); });
+  checkMsg.textContent = '';
+}
+
+function showAnswer() {
+  tableEl.querySelectorAll('td').forEach(td => {
+    const ans = comp(parseInt(td.dataset.row,10), parseInt(td.dataset.col,10));
+    td.textContent = `${ans}°`;
+    td.classList.remove('ok','bad');
+  });
+  checkMsg.textContent = 'Answer shown.';
+}
+
+function checkTable() {
+  let correct = 0, total = 0;
+  tableEl.querySelectorAll('td').forEach(td => {
+    const ans = comp(parseInt(td.dataset.row,10), parseInt(td.dataset.col,10));
+    const val = td.textContent === '·' ? NaN : parseInt(td.textContent, 10);
+    total++;
+    if (!Number.isNaN(val) && val === ans) { td.classList.add('ok'); td.classList.remove('bad'); correct++; }
+    else { td.classList.add('bad'); td.classList.remove('ok'); }
+  });
+  if (correct === total) checkMsg.textContent = 'Perfect! This is the composition table for C6 rotations.';
+  else checkMsg.textContent = `Correct ${correct}/${total}. Keep going!`;
+}
+
+buildTable();
+btnClear.addEventListener('click', clearTable);
+btnShow.addEventListener('click', showAnswer);
+btnCheck.addEventListener('click', checkTable);
 
 
