@@ -55,13 +55,15 @@ function setRotation(angleDeg) {
 
 // deltaDeg is intended CCW amount
 function animateBy(deltaDeg) {
+  if (deltaDeg === 0) return;
   if (isAnimating) { pending += deltaDeg; return; }
   isAnimating = true;
 
   const startAngle = currentAngle;
   // Apply negative because CSS positive rotation is clockwise; we want CCW visually
   const endAngle = startAngle - deltaDeg;
-  const duration = 300; // ms
+  const basePer60 = 300; // ms per 60° so speed is consistent
+  const duration = Math.max(1, Math.round(basePer60 * (Math.abs(deltaDeg) / 60)));
   const t0 = performance.now();
 
   function step(t) {
@@ -90,9 +92,10 @@ function rotateBy60(mult = 1) {
 }
 
 function resetRotation() {
-  // Rotate CCW back to 0° display
-  const ccw = ((-currentAngle % 360) + 360) % 360;
-  if (ccw !== 0) animateBy(ccw);
+  // Rotate CCW to return display angle to 0°
+  const displayCcw = ((-currentAngle % 360) + 360) % 360;
+  const ccwNeeded = (360 - displayCcw) % 360; // shortest CCW to reach 0°
+  if (ccwNeeded !== 0) animateBy(ccwNeeded);
 }
 
 // Controls: CCW-only increments
