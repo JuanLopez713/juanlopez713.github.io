@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Group Theory: Rectangle Symmetries (D2)</title>
+  <title>Rectangle Symmetries (D2)</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Source+Sans+Pro:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -42,7 +42,10 @@
     .cayley th { background: #f1f3f5; }
     .cayley .ok { background: #d4edda; }
     .cayley .bad { background: #f8d7da; }
-    .legend { text-align: center; margin-top: 0.5rem; color: #666; }
+    .legend { display: flex; justify-content: center; align-items: center; gap: 8px; flex-wrap: wrap; max-width: 600px; margin: 0.5rem auto 0; color: #666; }
+    .table-feedback { max-width: 600px; margin: 0.5rem auto 0; text-align: center; color: #666; }
+    #btnShow.inactive { background: #6c757d; color: #ffffff; }
+    #btnShow.inactive:hover { background: #6c757d; }
   </style>
 </head>
 <body>
@@ -76,13 +79,10 @@
 
       <main class="chartarea canvas-area">
         <svg id="gtSvg" viewBox="0 0 600 300">
-          <!-- grid -->
           <g id="grid"></g>
-          <!-- rectangle + labels as one group for animation -->
           <g id="rectOuter" class="animRotate">
             <g id="rectInner">
               <rect id="rect" class="rect-shape" x="180" y="80" width="240" height="140" rx="6" ry="6"></rect>
-              <!-- corner labels inside rectangle to avoid clipping -->
               <text id="labelA" class="corner-label" x="192" y="98">A</text>
               <text id="labelB" class="corner-label" x="408" y="98" text-anchor="end">B</text>
               <text id="labelC" class="corner-label" x="408" y="202" text-anchor="end">C</text>
@@ -96,12 +96,14 @@
           <button id="btnCheck" class="widget-action-button">Check Table</button>
           <button id="btnClear" class="widget-action-button">Clear Table</button>
           <button id="btnShow" class="widget-action-button">Show Answer</button>
-          <div id="checkMsg" style="margin-top:0.5rem;"></div>
         </div>
+        <div id="checkMsg" class="table-feedback"></div>
       </main>
     </div>
   </div>
 
-  <script type="module" src="group-theory.js"></script>
+  <script type="module" src="rectangle-rotator.js"></script>
 </body>
 </html>
+
+
