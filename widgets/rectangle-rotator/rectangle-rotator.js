@@ -100,7 +100,7 @@ function animateToState(targetOp, requestedOp) {
     const eased = 0.5 - 0.5 * Math.cos(Math.PI * p);
 
     if (isRotationOp) {
-      const angle = 180 * eased;
+      const angle = -180 * eased; // CCW visual rotation
       rectOuter.style.transform = `rotate(${angle}deg)`;
       rectInner.style.transform = `scale(${startSx}, ${startSy})`;
     } else {
