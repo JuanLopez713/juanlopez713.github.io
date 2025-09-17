@@ -18,6 +18,7 @@ const btnCheck = ids('btnCheck');
 const btnClear = ids('btnClear');
 const btnShow = ids('btnShow');
 const checkMsg = ids('checkMsg');
+let hasCheckedOnce = false;
 
 // --- Grid ---
 (function drawGrid(){
@@ -150,6 +151,11 @@ function buildTable() {
         const next = options[(options.indexOf(cur) + 1) % options.length] || '0°';
         td.textContent = next;
         td.classList.remove('ok','bad');
+        // Update show button state if user edits after checking
+        const allFilledNow = Array.from(tableEl.querySelectorAll('td')).every(c => c.textContent !== '·');
+        if (hasCheckedOnce && allFilledNow) btnShow.classList.remove('inactive');
+        else btnShow.classList.add('inactive');
+        checkMsg.textContent = '';
       });
       tr.appendChild(td);
     });
@@ -163,9 +169,18 @@ function buildTable() {
 function clearTable() {
   tableEl.querySelectorAll('td').forEach(td => { td.textContent = '·'; td.classList.remove('ok','bad'); });
   checkMsg.textContent = '';
+  hasCheckedOnce = false;
+  btnShow.classList.add('inactive');
 }
 
 function showAnswer() {
+  // Guard: require at least one check and all cells filled
+  const allFilled = Array.from(tableEl.querySelectorAll('td')).every(td => td.textContent !== '·');
+  if (!hasCheckedOnce || !allFilled) {
+    btnShow.classList.add('inactive');
+    checkMsg.textContent = 'Please fill in all cells and click "Check Table" first.';
+    return;
+  }
   tableEl.querySelectorAll('td').forEach(td => {
     const ans = comp(parseInt(td.dataset.row,10), parseInt(td.dataset.col,10));
     td.textContent = `${ans}°`;
@@ -183,11 +198,15 @@ function checkTable() {
     if (!Number.isNaN(val) && val === ans) { td.classList.add('ok'); td.classList.remove('bad'); correct++; }
     else { td.classList.add('bad'); td.classList.remove('ok'); }
   });
+  hasCheckedOnce = true;
+  const allFilled = Array.from(tableEl.querySelectorAll('td')).every(td => td.textContent !== '·');
+  if (allFilled) btnShow.classList.remove('inactive'); else btnShow.classList.add('inactive');
   if (correct === total) checkMsg.textContent = 'Perfect! This is the composition table for C6 rotations.';
   else checkMsg.textContent = `Correct ${correct}/${total}. Keep going!`;
 }
 
 buildTable();
+btnShow.classList.add('inactive');
 btnClear.addEventListener('click', clearTable);
 btnShow.addEventListener('click', showAnswer);
 btnCheck.addEventListener('click', checkTable);

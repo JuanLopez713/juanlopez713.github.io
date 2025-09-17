@@ -41,7 +41,10 @@
     .cayley th { background: #f1f3f5; }
     .cayley .ok { background: #d4edda; }
     .cayley .bad { background: #f8d7da; }
-    .legend { text-align: center; margin-top: 0.5rem; color: #666; }
+    .legend { display: flex; justify-content: center; align-items: center; gap: 8px; flex-wrap: wrap; max-width: 600px; margin: 0.5rem auto 0; color: #666; }
+    .table-feedback { max-width: 600px; margin: 0.5rem auto 0; text-align: center; color: #666; }
+    #btnShow.inactive { background: #6c757d; color: #ffffff; }
+    #btnShow.inactive:hover { background: #6c757d; }
   </style>
   </head>
   <body>
@@ -96,8 +99,8 @@
             <button id="btnCheck" class="widget-action-button">Check Table</button>
             <button id="btnClear" class="widget-action-button">Clear Table</button>
             <button id="btnShow" class="widget-action-button">Show Answer</button>
-            <div id="checkMsg" style="margin-top:0.5rem;"></div>
           </div>
+          <div id="checkMsg" class="table-feedback"></div>
         </main>
       </div>
     </div>
