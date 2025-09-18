@@ -105,7 +105,7 @@ function renderTable(a, b, c, rows) {
     const n = idx; // between t(n) and t(n+1)
     const coeff = 2 * n + 1;
     const aPart = coeff === 1 ? "a" : `${coeff}a`;
-    return `(${aPart} + b)`;
+    return `${aPart} + b`;
   };
   const d2Expr = () => `2a`;
   const bodyRows = [];
