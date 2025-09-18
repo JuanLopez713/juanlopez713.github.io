@@ -83,35 +83,60 @@ function renderTable(a, b, c, rows) {
   ids("sc").textContent = c;
   ids("sdd").textContent = fmt(2 * a);
 
-  // Stars for first four terms
-  renderStars(terms.slice(0, 4));
+  // Initialize recursion panel default (based on t(2))
+  renderRecursionForT(terms, d1, d2, 2);
 
   // Wire interactions
   wireInteractions(rows);
 }
 
-function renderStars(firstFour) {
-  const steps = ids("steps");
-  const maxStarsToRender = 200; // clip to keep DOM light
-  const items = firstFour.map((val, idx) => {
-    const k = idx + 1;
-    const count = Math.max(0, Math.floor(val));
-    const clipped = Math.min(count, maxStarsToRender);
-    const extra = count > maxStarsToRender ? count - maxStarsToRender : 0;
-    const stars = new Array(clipped).fill("★").map(s => `<span class="star">${s}</span>`).join("");
-    const plus = extra > 0 ? `<span class="star dim">+${extra} more</span>` : "";
-    return `
-      <div class="step">
-        <h4>
-          <span>Step ${k}</span>
-          <span class="value">t(${k}) = ${val}</span>
-        </h4>
-        <div class="stars">${stars}${plus}</div>
-      </div>
-    `;
-  });
-  steps.innerHTML = items.join("");
+function renderRecursion(text) {
+  const panel = ids('recursionPanel');
+  panel.innerHTML = `<div class="step"><h4><span>Recursive Step</span></h4><div>${text}</div></div>`;
 }
+
+function renderRecursionForT(terms, d1, d2, n) {
+  if (n <= 1 || n > terms.length) {
+    renderRecursion(`Pick a term t(n) with n ≥ 2.`);
+    return;
+  }
+  const tn = terms[n - 1];
+  const tn1 = terms[n - 2];
+  const deltaIdx = n - 2;
+  const d = d1[deltaIdx];
+  const sign = d >= 0 ? '+' : '−';
+  const mag = Math.abs(d);
+  renderRecursion(`t(${n}) = t(${n - 1}) ${sign} ${mag} ⇒ ${tn} = ${tn1} ${sign} ${mag}`);
+}
+
+function renderRecursionForD1(d1Idx, terms, d1, d2) {
+  // For Δ at index i (between t(i+1) and t(i+2)):
+  // Show as: t(i+2) = t(i+1) + ( Δ(1) + (i)·Δ² ) with numeric substitution
+  if (d1Idx < 0 || d1Idx >= d1.length) {
+    renderRecursion(`Pick a first difference Δ.`);
+    return;
+  }
+  const nRight = d1Idx + 2; // t index on the right side
+  const tRight = terms[nRight - 1];
+  const tPrev = terms[nRight - 2];
+  const deltaOne = d1[0];
+  const d2const = d2.length > 0 ? d2[0] : 0;
+  const count = nRight - 1; // use (n-1) multiple per requested display
+
+  const baseStr = `${deltaOne < 0 ? '−' : ''}${Math.abs(deltaOne)}`;
+  let inside;
+  if (count <= 0) {
+    inside = baseStr;
+  } else {
+    const op = d2const >= 0 ? ' + ' : ' − ';
+    const prod = `(${Math.abs(d2const)})(${count})`;
+    inside = `${baseStr}${op}${prod}`;
+  }
+  const eq = `t(${nRight}) = t(${nRight - 1}) + (${inside}) ⇒ ${tRight} = ${tPrev} + (${inside})`;
+  renderRecursion(eq);
+}
+
+function withSigned(v) { return `${v >= 0 ? '+' : '−'}${Math.abs(v)}`; }
 
 function init() {
   const aRange = ids("aRange");
@@ -146,6 +171,24 @@ function init() {
     el.addEventListener("input", update);
     el.addEventListener("change", update);
   });
+
+  const btnRandom = ids('btnRandom');
+  if (btnRandom) {
+    btnRandom.addEventListener('click', () => {
+      // Random but reasonable classroom-friendly ranges
+      let a = 0;
+      while (a === 0) a = Math.trunc(Math.random() * 7) - 3; // -3..3 excluding 0
+      const b = Math.trunc(Math.random() * 21) - 10; // -10..10
+      const c = Math.trunc(Math.random() * 21) - 10; // -10..10
+      const rows = Math.trunc(Math.random() * 7) + 6; // 6..12
+
+      aRange.value = String(a);
+      bRange.value = String(b);
+      cRange.value = String(c);
+      rowsRange.value = String(rows);
+      update();
+    });
+  }
 
   update();
 }
@@ -182,6 +225,16 @@ function wireInteractions(rows) {
         const d1Cell = document.querySelector(`td[data-kind="d1"][data-idx="${dIdx}"]`);
         if (d1Cell) d1Cell.classList.add('hl-d1');
       }
+      // Update recursion panel for this term
+      // Recompute arrays from current sliders to make sure we have values
+      const a = parseInt(ids('aRange').value, 10);
+      const b = parseInt(ids('bRange').value, 10);
+      const c = parseInt(ids('cRange').value, 10);
+      const rows = parseInt(ids('rowsRange').value, 10);
+      const termsNow = computeTerms(a, b, c, rows);
+      const d1Now = computeFirstDiffs(termsNow);
+      const d2Now = computeSecondDiffs(d1Now);
+      renderRecursionForT(termsNow, d1Now, d2Now, n);
     } else if (kind === 'd1') {
       cell.classList.add('hl-selected');
       // Clicking Δ at index i (between t(i+1) and t(i+2)):
@@ -197,6 +250,16 @@ function wireInteractions(rows) {
       }
       // Also highlight the clicked Δ for clarity
       cell.classList.add('hl-d1');
+
+      // Update recursion panel expressing Δ(i) via Δ(1) and Δ²'s
+      const a = parseInt(ids('aRange').value, 10);
+      const b = parseInt(ids('bRange').value, 10);
+      const c = parseInt(ids('cRange').value, 10);
+      const rows = parseInt(ids('rowsRange').value, 10);
+      const termsNow = computeTerms(a, b, c, rows);
+      const d1Now = computeFirstDiffs(termsNow);
+      const d2Now = computeSecondDiffs(d1Now);
+      renderRecursionForD1(iIdx, termsNow, d1Now, d2Now);
     } else if (kind === 'd2') {
       cell.classList.add('hl-selected');
       // Clicking Δ²: just highlight it and the adjacent Δs (optional enrichment)

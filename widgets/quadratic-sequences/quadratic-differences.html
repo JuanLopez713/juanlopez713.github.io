@@ -121,6 +121,9 @@
             <label for="rowsRange">Rows shown (n from 1): <span id="rowsVal" class="inline-val">8</span></label>
             <input id="rowsRange" type="range" min="4" max="14" step="1" value="8" />
           </div>
+          <div class="control">
+            <button id="btnRandom" class="widget-action-button">Random Sequence</button>
+          </div>
         </div>
         <div class="info">
           <h3>Key Idea</h3>
@@ -143,10 +146,10 @@
 
           <section class="stars-panel">
             <div class="info" style="margin-bottom: 0.5rem;">
-              <h3>First Four Terms as Stars</h3>
-              <p>Step k shows <em>t(k)</em> stars. Try a=1, b=0, c=0 for 1, 4, 9, 16.</p>
+              <h3>Recursive Form</h3>
+              <p>Click table cells to see recursion. Clicking t(n) shows t(n−1) + Δ; clicking a Δ shows t(n+1) = t(n) + (Δ<sub>1</sub> plus needed Δ<sup>2</sup> terms).</p>
             </div>
-            <div id="steps" class="stars-steps"></div>
+            <div id="recursionPanel" class="stars-steps"></div>
           </section>
         </div>
       </main>
