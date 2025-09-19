@@ -2,6 +2,7 @@ import { ids, fmt } from "../shared/shared-utils.js";
 
 let symbolicMode = true; // Start with symbolic a, b, c rendering
 let interactionsWired = false; // Ensure we wire click handlers only once
+let baseStartN = 0; // Selected starting n for Δ summation (affects Δ click behavior)
 
 function computeTerms(a, b, c, rows) {
   const terms = [];
@@ -162,6 +163,9 @@ function renderTable(a, b, c, rows) {
 
   // Wire interactions
   wireInteractions(rows);
+
+  // Reapply base highlight after re-render
+  applyBaseHighlight(rows);
 }
 
 function renderRecursion(line1, line2) {
@@ -194,31 +198,33 @@ function renderRecursionForT(terms, d1, d2, n) {
 }
 
 function renderRecursionForD1(d1Idx, terms, d1, d2) {
-  // For Δ at index i (between t(i+1) and t(i+2)):
-  // In symbolic mode: t(i+1) = t(i) + (Δ1 + i·Δ²)
-  // In numeric mode: t(n) = t(n-1) + (Δ1 + (n-1)·Δ²) with substitution
+  // For Δ at index i (between t(i) and t(i+1)):
+  // Start from selected base Δ at index baseStartN, then add (i - base) Δ² terms
   if (d1Idx < 0 || d1Idx >= d1.length) {
     renderRecursion(`Pick a first difference Δ.`, ``);
     return;
   }
+  const baseIdx = Math.max(0, Math.min(baseStartN, d1.length - 1));
+  const count = d1Idx - baseIdx;
+  const nRight = d1Idx + 1; // right index in zero-based (t(i+1))
   if (symbolicMode) {
-    const nRight = d1Idx + 1; // right index in zero-based (t(i+1))
-    const count = d1Idx; // number of highlighted Δ² terms
-    const line1 = `t(${nRight}) = t(${nRight - 1}) + (Δ₁ + ${count}·Δ²)`;
-    const line2 = `t(${nRight}) = t(${nRight - 1}) + ((a + b) + (2a)(${count}))`;
+    const coeff = 2 * baseIdx + 1;
+    const aPart = coeff === 1 ? 'a' : `${coeff}a`;
+    const baseDeltaSym = `${aPart} + b`;
+    const countPart = count > 0 ? ` + (2a)(${count})` : count === 0 ? '' : ` − (2a)(${Math.abs(count)})`;
+    const inside = `(${baseDeltaSym}${countPart})`;
+    const line1 = `t(${nRight}) = t(${nRight - 1}) + ${inside}`;
+    const line2 = `Δ(start at n=${baseIdx}) = (${baseDeltaSym})`;
     renderRecursion(line1, line2);
   } else {
-    const nRight = d1Idx + 1;
     const tRight = terms[nRight];
     const tPrev = terms[nRight - 1];
-    const deltaOne = d1[0];
+    const deltaBase = d1[baseIdx];
     const d2const = d2.length > 0 ? d2[0] : 0;
-    const count = d1Idx; // number of highlighted Δ² terms
-
-    const baseStr = `${deltaOne < 0 ? '−' : ''}${Math.abs(deltaOne)}`;
-    const prod = `(${Math.abs(d2const)})(${count})`;
-    const joiner = d2const >= 0 ? ' + ' : ' − ';
-    const inside = count > 0 ? `${baseStr}${joiner}${prod}` : `${baseStr}`;
+    const baseStr = `${deltaBase < 0 ? '−' : ''}${Math.abs(deltaBase)}`;
+    const prod = `(${Math.abs(d2const)})(${Math.abs(count)})`;
+    const signedPart = count === 0 ? '' : (count > 0 ? (d2const >= 0 ? ` + ${prod}` : ` − ${prod}`) : (d2const >= 0 ? ` − ${prod}` : ` + ${prod}`));
+    const inside = `${baseStr}${signedPart}`;
     const line1 = `t(${nRight}) = t(${nRight - 1}) + (${inside})`;
     const line2 = `${tRight} = ${tPrev} + (${inside})`;
     renderRecursion(line1, line2);
@@ -320,12 +326,16 @@ function wireInteractions(rows) {
     let kind = cell.getAttribute('data-kind');
     if (!kind) return;
     clearHighlights();
-    // Treat clicks on the index column (data-kind="t-n") the same as clicks on t(n)
-    if (kind === 't-n') {
-      kind = 't';
-    }
 
-    if (kind === 't') {
+    if (kind === 't-n') {
+      // Selecting a new base start at this n
+      const n = parseInt(cell.getAttribute('data-n'), 10);
+      baseStartN = isNaN(n) ? 0 : n;
+      // Clamp base so it always points to an existing Δ (if possible)
+      const rowsNow = parseInt(ids('rowsRange').value, 10);
+      if (baseStartN >= rowsNow - 1) baseStartN = Math.max(0, rowsNow - 2);
+      applyBaseHighlight(rowsNow);
+    } else if (kind === 't') {
       // Normalize selection to the t(n) value cell (not the index cell)
       const n = parseInt(cell.getAttribute('data-n'), 10);
       const tnCell = document.querySelector(`td[data-kind="t"][data-n="${n}"]`);
@@ -353,15 +363,19 @@ function wireInteractions(rows) {
       // Select the clicked Δ cell
       cell.classList.add('hl-selected');
       // Clicking Δ at index i (between t(i+1) and t(i+2)):
-      // highlight the first Δ (index 0) and all needed Δ²s to sum to this Δ
+      // highlight the base Δ (after selected n) and the needed Δ²s to sum to this Δ
       const iIdx = parseInt(cell.getAttribute('data-idx'), 10);
-      // First Δ
-      const firstD1 = document.querySelector('td[data-kind="d1"][data-idx="0"]');
-      if (firstD1) firstD1.classList.add('hl-d1');
-      // Required Δ²: indices 0..iIdx-1
-      for (let k = 0; k < iIdx; k += 1) {
-        const d2Cell = document.querySelector(`td[data-kind="d2"][data-idx="${k}"]`);
-        if (d2Cell) d2Cell.classList.add('hl-d2');
+      const rowsNow = parseInt(ids('rowsRange').value, 10);
+      const baseIdx = Math.max(0, Math.min(baseStartN, rowsNow - 2));
+      // Base Δ
+      const baseD1 = document.querySelector(`td[data-kind="d1"][data-idx="${baseIdx}"]`);
+      if (baseD1) baseD1.classList.add('hl-d1');
+      // Required Δ²: indices baseIdx..iIdx-1 (forward only)
+      if (iIdx >= baseIdx) {
+        for (let k = baseIdx; k < iIdx; k += 1) {
+          const d2Cell = document.querySelector(`td[data-kind="d2"][data-idx="${k}"]`);
+          if (d2Cell) d2Cell.classList.add('hl-d2');
+        }
       }
       // Also highlight the clicked Δ for clarity
       cell.classList.add('hl-d1');
@@ -381,6 +395,16 @@ function wireInteractions(rows) {
       cell.classList.add('hl-d2');
     }
   });
+}
+
+function applyBaseHighlight(rows) {
+  // Remove previous base highlights
+  document.querySelectorAll('.hl-base').forEach(el => el.classList.remove('hl-base'));
+  const nCell = document.querySelector(`td[data-kind="t-n"][data-n="${baseStartN}"]`);
+  if (nCell) nCell.classList.add('hl-base');
+  const baseIdx = Math.max(0, Math.min(baseStartN, rows - 2));
+  const d1Cell = document.querySelector(`td[data-kind="d1"][data-idx="${baseIdx}"]`);
+  if (d1Cell) d1Cell.classList.add('hl-base');
 }
 
 
