@@ -160,6 +160,7 @@ function init() {
   const aRange = ids('aRange');
   const bRange = ids('bRange');
   const rowsRange = ids('rowsRange');
+  const btnToggleMode = ids('btnToggleMode');
   const aVal = ids('aVal');
   const bVal = ids('bVal');
   const rowsVal = ids('rowsVal');
@@ -197,6 +198,16 @@ function init() {
       symbolicMode = false; // switch to numeric mode for practice
       update();
     });
+  }
+
+  if (btnToggleMode) {
+    btnToggleMode.addEventListener('click', () => {
+      symbolicMode = !symbolicMode;
+      btnToggleMode.textContent = symbolicMode ? 'Show Numbers' : 'Show General Form';
+      update();
+    });
+    // Initial label
+    btnToggleMode.textContent = symbolicMode ? 'Show Numbers' : 'Show General Form';
   }
 
   update();
