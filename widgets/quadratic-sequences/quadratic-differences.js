@@ -1,6 +1,7 @@
 import { ids, fmt } from "../shared/shared-utils.js";
 
 let symbolicMode = true; // Start with symbolic a, b, c rendering
+let interactionsWired = false; // Ensure we wire click handlers only once
 
 function computeTerms(a, b, c, rows) {
   const terms = [];
@@ -231,6 +232,7 @@ function init() {
   const bRange = ids("bRange");
   const cRange = ids("cRange");
   const rowsRange = ids("rowsRange");
+  const btnToggleMode = ids('btnToggleMode');
 
   const aVal = ids("aVal");
   const bVal = ids("bVal");
@@ -279,6 +281,19 @@ function init() {
     });
   }
 
+  if (btnToggleMode) {
+    btnToggleMode.addEventListener('click', () => {
+      symbolicMode = !symbolicMode;
+      btnToggleMode.textContent = symbolicMode ? 'Show Numbers' : 'Show General Form';
+      update();
+    });
+    // Ensure initial label matches initial mode
+    btnToggleMode.textContent = symbolicMode ? 'Show Numbers' : 'Show General Form';
+  }
+
+  // Ensure interactions are wired before the first render so clicks work immediately
+  wireInteractions();
+
   update();
 }
 
@@ -291,21 +306,31 @@ function clearHighlights() {
 }
 
 function wireInteractions(rows) {
-  const tbody = document.querySelector('#diffTable tbody');
-  if (!tbody) return;
+  if (interactionsWired) return;
+  interactionsWired = true;
 
-  tbody.addEventListener('click', (e) => {
-    const cell = e.target.closest('td');
+  document.addEventListener('click', (e) => {
+    let target = e.target;
+    // Normalize non-element targets (e.g., Text nodes) to their parent element
+    if (target && target.nodeType !== 1 && target.parentElement) {
+      target = target.parentElement;
+    }
+    const cell = target && target.closest ? target.closest('#diffTable td') : null;
     if (!cell) return;
-    const kind = cell.getAttribute('data-kind');
+    let kind = cell.getAttribute('data-kind');
     if (!kind) return;
     clearHighlights();
+    // Treat clicks on the index column (data-kind="t-n") the same as clicks on t(n)
+    if (kind === 't-n') {
+      kind = 't';
+    }
 
     if (kind === 't') {
-      cell.classList.add('hl-selected');
-      // Clicking t(n): highlight t(n) (self), t(n-1), and the Δ between them
+      // Normalize selection to the t(n) value cell (not the index cell)
       const n = parseInt(cell.getAttribute('data-n'), 10);
       const tnCell = document.querySelector(`td[data-kind="t"][data-n="${n}"]`);
+      if (tnCell) tnCell.classList.add('hl-selected');
+      // Clicking t(n): highlight t(n) (self), t(n-1), and the Δ between them
       if (tnCell) tnCell.classList.add('hl-t');
       if (n > 0) {
         const prevCell = document.querySelector(`td[data-kind="t"][data-n="${n - 1}"]`);
@@ -325,12 +350,13 @@ function wireInteractions(rows) {
       const d2Now = computeSecondDiffs(d1Now);
       renderRecursionForT(termsNow, d1Now, d2Now, n);
     } else if (kind === 'd1') {
+      // Select the clicked Δ cell
       cell.classList.add('hl-selected');
       // Clicking Δ at index i (between t(i+1) and t(i+2)):
       // highlight the first Δ (index 0) and all needed Δ²s to sum to this Δ
       const iIdx = parseInt(cell.getAttribute('data-idx'), 10);
       // First Δ
-      const firstD1 = document.querySelector('td[data-kind="d1"][data-idx="0"][class*="d1-cell"]') || document.querySelector('td[data-kind="d1"][data-idx="0"]');
+      const firstD1 = document.querySelector('td[data-kind="d1"][data-idx="0"]');
       if (firstD1) firstD1.classList.add('hl-d1');
       // Required Δ²: indices 0..iIdx-1
       for (let k = 0; k < iIdx; k += 1) {
