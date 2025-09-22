@@ -7,6 +7,7 @@ const hexOuter = ids('hexOuter');
 const hexInner = ids('hexInner');
 const angleReadout = ids('angleReadout');
 
+const btn0 = ids('btn0');
 const btn60 = ids('btn60');
 const btn120 = ids('btn120');
 const btn180 = ids('btn180');
@@ -100,6 +101,7 @@ function resetRotation() {
 }
 
 // Controls: CCW-only increments
+btn0.addEventListener('click', () => animateBy(0));
 btn60.addEventListener('click', () => rotateBy60(1));
 btn120.addEventListener('click', () => rotateBy60(2));
 btn180.addEventListener('click', () => rotateBy60(3));
